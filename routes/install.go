@@ -153,9 +153,9 @@ func InstallTableCBT(c *fiber.Ctx) error {
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			CBT_list_id INT NOT NULL,
 			num INT NULL,
-			question TEXT,
+			question TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
 			tipe VARCHAR(50) NOT NULL,
-			"option" TEXT,
+			options TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
 			answer TEXT,
 			score INT NOT NULL,
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
