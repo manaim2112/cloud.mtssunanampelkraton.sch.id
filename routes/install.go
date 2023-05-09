@@ -155,7 +155,7 @@ func InstallTableCBT(c *fiber.Ctx) error {
 			num INT NULL,
 			question TEXT,
 			tipe VARCHAR(50) NOT NULL,
-			option TEXT,
+			"option" TEXT,
 			answer TEXT,
 			score INT NOT NULL,
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

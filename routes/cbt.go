@@ -50,7 +50,7 @@ type CBT_soalType struct {
 	Num         *int     `json:"num"`
 	Question    *string  `json:"question"`
 	Tipe        *string  `json:"tipe"`
-	Option      *string  `json:"option"`
+	Options     *string  `json:"options"`
 	Answer      *string  `json:"answer"`
 	Score       *string  `json:"score"`
 	Created_at  *[]uint8 `json:"created_at"`
@@ -351,7 +351,7 @@ func getCBT_soalWithListId(c *fiber.Ctx) error {
 	defer rows.Close()
 	for rows.Next() {
 		var p CBT_soalType
-		if err := rows.Scan(&p.Id, &p.CBT_list_id, &p.Num, &p.Question, &p.Tipe, &p.Option, &p.Answer, &p.Score, &p.Created_at); err != nil {
+		if err := rows.Scan(&p.Id, &p.CBT_list_id, &p.Num, &p.Question, &p.Tipe, &p.Options, &p.Answer, &p.Score, &p.Created_at); err != nil {
 			return c.JSON(fiber.Map{
 				"status":  404,
 				"message": err.Error(),
@@ -416,7 +416,7 @@ func getCBT_soalWithId(c *fiber.Ctx) error {
 
 	p := CBT_soalType{}
 
-	if err := db.QueryRowContext(c.Context(), "SELECT * FROM CBT_soal WHERE id=?", id).Scan(&p.Id, &p.CBT_list_id, &p.Num, &p.Question, &p.Tipe, &p.Option, &p.Answer, &p.Score, &p.Created_at); err != nil {
+	if err := db.QueryRowContext(c.Context(), "SELECT * FROM CBT_soal WHERE id=?", id).Scan(&p.Id, &p.CBT_list_id, &p.Num, &p.Question, &p.Tipe, &p.Options, &p.Answer, &p.Score, &p.Created_at); err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
 			"message": err.Error(),
@@ -448,7 +448,7 @@ func InsertCBT_soalMany(c *fiber.Ctx) error {
 
 	var num int
 	for _, u := range *gh {
-		_, err := stmt.Exec(u.CBT_list_id, u.Question, u.Tipe, u.Option, u.Answer, u.Score)
+		_, err := stmt.Exec(u.CBT_list_id, u.Question, u.Tipe, u.Options, u.Answer, u.Score)
 		if err == nil {
 			num++
 		}
@@ -467,7 +467,7 @@ func InsertCBT_soal(c *fiber.Ctx) error {
 			"message": "Gagal mendapatkan data",
 		})
 	}
-	_, err := db.ExecContext(c.Context(), "INSERT INTO CBT_soal (CBT_list_id, question, tipe, option, answer, score) VALUES (?, ?, ?, ?, ?, ?)", u.CBT_list_id, u.Question, u.Tipe, u.Option, u.Answer, u.Score)
+	_, err := db.ExecContext(c.Context(), "INSERT INTO CBT_soal (CBT_list_id, question, tipe, option, answer, score) VALUES (?, ?, ?, ?, ?, ?)", u.CBT_list_id, u.Question, u.Tipe, u.Options, u.Answer, u.Score)
 	if err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
@@ -517,7 +517,7 @@ func UpdateCBT_soal(c *fiber.Ctx) error {
 			"message": err.Error(),
 		})
 	}
-	_, err := db.ExecContext(c.Context(), "UPDATE CBT_soal SET question=?, option=?, answer=?, score=? WHERE id=?", soal.Question, soal.Option, soal.Answer, soal.Score, soal.Id)
+	_, err := db.ExecContext(c.Context(), "UPDATE CBT_soal SET question=?, option=?, answer=?, score=? WHERE id=?", soal.Question, soal.Options, soal.Answer, soal.Score, soal.Id)
 	if err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
