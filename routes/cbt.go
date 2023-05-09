@@ -1,0 +1,743 @@
+package routes
+
+import (
+	"io"
+	"mime/multipart"
+	"os"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+func RouteCBT(app *fiber.App) {
+	ctx := app.Group("/api/cbt")
+	ctx.Get("/list", getCBT_listWithGuruId)
+	ctx.Get("/list/id/:id", getCBT_listWithId)
+	ctx.Get("/list/kelas/:kelas", getCBT_listWithKelas)
+	ctx.Get("/list/all", getCBT_listAll)
+	ctx.Post("/list/create", InsertCBT_list)
+	ctx.Put("/list/update", UpdateCBT_list)
+	ctx.Put("/list/update_acak", UpdateCBT_listInAcak)
+	ctx.Put("/list/update_priority", UpdateCBT_listInPriority)
+	ctx.Put("/list/update_start_end", UpdateCBT_listInMulaiBerakhir)
+	ctx.Put("/list/update_code", UpdateCBT_listCode)
+	ctx.Delete("/list/id/:id", DeleteCBT_list)
+	ctx.Get("/list/count", CountList)
+	ctx.Get("/list/code/id/:id", getCodeInCBT_listWithId)
+
+	ctx.Get("/soal", getCBT_soalWithListId)
+	ctx.Get("/soal/id/:id", getCBT_soalWithId)
+	ctx.Post("/soal/create", InsertCBT_soal)
+	ctx.Post("/soal/create_many", InsertCBT_soalMany)
+	ctx.Put("/soal/update", UpdateCBT_soal)
+	ctx.Delete("/soal/id/:id", DeleteCBT_soal)
+	ctx.Delete("/soal/withlist/id/:id", DeleteAllCBT_soal)
+	ctx.Post("/soal/upload_foto", uploadFotoSoal)
+	ctx.Static("/soal/image", "./uploads/image")
+
+	ctx.Get("/result/list/:listid", getCBT_resultWithListId)
+	ctx.Get("/result/user/:userid", getCBT_resultWithUserId)
+	ctx.Get("/result/list/:listid/user/:userid", getCBT_resultWithListIdAndUserId)
+	ctx.Get("/result/id/:id", getCBT_resultWithId)
+	ctx.Post("/result/create", InsertCBT_result)
+	ctx.Put("/result/update", UpdateCBT_result)
+	ctx.Delete("/result/id/:id", DeleteCBT_result)
+
+}
+
+type CBT_soalType struct {
+	Id          *int     `json:"id"`
+	CBT_list_id *int     `json:"CBT_list_id"`
+	Num         *int     `json:"num"`
+	Question    *string  `json:"question"`
+	Tipe        *string  `json:"tipe"`
+	Option      *string  `json:"option"`
+	Answer      *string  `json:"answer"`
+	Score       *string  `json:"score"`
+	Created_at  *[]uint8 `json:"created_at"`
+}
+
+type CBT_listType struct {
+	Id         *int     `json:"id"`
+	Name       *string  `json:"name"`
+	Jenis      *string  `json:"jenis"`
+	Durasi     *string  `json:"durasi"`
+	Min_durasi *string  `json:"min_durasi"`
+	Mulai      *string  `json:"mulai"`
+	Berakhir   *string  `json:"berakhir"`
+	Acak       *bool    `json:"acak"`
+	Code       *string  `json:"code"`
+	Priority   *bool    `json:"priority"`
+	Tokelas    *string  `json:"tokelas"`
+	Creator    int      `json:"creator"`
+	Created_at *[]uint8 `json:"created_at"`
+	Updated_at *[]uint8 `json:"updated_at"`
+}
+
+type CBT_resultType struct {
+	Id         *int     `json:"id"`
+	Idlist     *int     `json:"idlist"`
+	Iduser     *int     `json:"iduser"`
+	Process    *string  `json:"process"`
+	Score      *int     `json:"score"`
+	Answer     *string  `json:"answer"`
+	Created_at *[]uint8 `json:"created_at"`
+}
+
+func CountList(c *fiber.Ctx) error {
+	var count int
+	if err := db.QueryRow("SELECT COUNT(*) FROM CBT_list").Scan(&count); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"count":  count,
+	})
+}
+
+func getCBT_listWithGuruId(c *fiber.Ctx) error {
+	id := c.Query("guruid")
+	rows, err := db.QueryContext(c.Context(), "SELECT * FROM CBT_list WHERE creator=?", id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	defer rows.Close()
+
+	list := []CBT_listType{}
+
+	for rows.Next() {
+		var u CBT_listType
+		if err := rows.Scan(&u.Id, &u.Name, &u.Jenis, &u.Durasi, &u.Min_durasi, &u.Mulai, &u.Berakhir, &u.Acak, &u.Code, &u.Priority, &u.Tokelas, &u.Creator, &u.Created_at, &u.Updated_at); err != nil {
+			return c.JSON(fiber.Map{
+				"status":  404,
+				"message": err.Error(),
+			})
+		}
+
+		list = append(list, u)
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   list,
+	})
+
+}
+
+func getCBT_listAll(c *fiber.Ctx) error {
+	rows, err := db.QueryContext(c.Context(), "SELECT * FROM CBT_list")
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	defer rows.Close()
+
+	list := []CBT_listType{}
+
+	for rows.Next() {
+		var u CBT_listType
+		if err := rows.Scan(&u.Id, &u.Name, &u.Jenis, &u.Durasi, &u.Min_durasi, &u.Mulai, &u.Berakhir, &u.Acak, &u.Code, &u.Priority, &u.Tokelas, &u.Creator, &u.Created_at, &u.Updated_at); err != nil {
+			return c.JSON(fiber.Map{
+				"status":  404,
+				"message": err.Error(),
+			})
+		}
+
+		list = append(list, u)
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   list,
+	})
+
+}
+
+func getCBT_listWithId(c *fiber.Ctx) error {
+	g := c.Params("id")
+
+	u := new(CBT_listType)
+	if err := db.QueryRowContext(c.Context(), "SELECT * FROM CBT_list WHERE id=?", g).Scan(&u.Id, &u.Name, &u.Jenis, &u.Durasi, &u.Min_durasi, &u.Mulai, &u.Berakhir, &u.Acak, &u.Code, &u.Priority, &u.Tokelas, &u.Creator, &u.Created_at, &u.Updated_at); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   u,
+	})
+
+}
+
+func InsertCBT_list(c *fiber.Ctx) error {
+
+	g := CBT_listType{}
+	if err := c.BodyParser(&g); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	row, err := db.ExecContext(c.Context(), "INSERT INTO CBT_list (name, jenis, durasi, min_durasi, code, tokelas, creator) VALUES (?, ?, ?, ?, ?, ?, ?)", g.Name, g.Jenis, g.Durasi, g.Min_durasi, g.Code, g.Tokelas, g.Creator)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	count, err := row.RowsAffected()
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  201,
+		"success": count,
+	})
+}
+func UpdateCBT_list(c *fiber.Ctx) error {
+
+	g := CBT_listType{}
+	if err := c.BodyParser(&g); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	row, err := db.ExecContext(c.Context(), "UPDATE CBT_list SET name=?, jenis=?, durasi=?, min_durasi=?, tokelas=? WHERE id=?", g.Name, g.Jenis, g.Durasi, g.Min_durasi, g.Tokelas, g.Id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	count, err := row.RowsAffected()
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  201,
+		"success": count,
+	})
+}
+
+func UpdateCBT_listInMulaiBerakhir(c *fiber.Ctx) error {
+	g := CBT_listType{}
+	if err := c.BodyParser(&g); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	_, err := db.ExecContext(c.Context(), "UPDATE CBT_list SET mulai=?, berakhir=? WHERE id=?", g.Mulai, g.Berakhir, g.Id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func UpdateCBT_listInAcak(c *fiber.Ctx) error {
+	g := CBT_listType{}
+	if err := c.BodyParser(&g); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	_, err := db.ExecContext(c.Context(), "UPDATE CBT_list SET acak=? WHERE id=?", g.Acak, g.Id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func UpdateCBT_listCode(c *fiber.Ctx) error {
+	g := CBT_listType{}
+	if err := c.BodyParser(&g); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	_, err := db.ExecContext(c.Context(), "UPDATE CBT_list SET code=? WHERE id=?", g.Code, g.Id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func UpdateCBT_listInPriority(c *fiber.Ctx) error {
+	g := CBT_listType{}
+	if err := c.BodyParser(&g); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	_, err := db.ExecContext(c.Context(), "UPDATE CBT_list SET priority=? WHERE id=?", g.Priority, g.Id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func DeleteCBT_list(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	_, err := db.ExecContext(c.Context(), "DELETE FROM CBT_list WHERE id=?", id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func getCBT_soalWithListId(c *fiber.Ctx) error {
+	listid := c.Query("listid")
+
+	l := []CBT_soalType{}
+
+	rows, err := db.QueryContext(c.Context(), "SELECT * FROM CBT_soal WHERE CBT_list_id=?", listid)
+
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var p CBT_soalType
+		if err := rows.Scan(&p.Id, &p.CBT_list_id, &p.Num, &p.Question, &p.Tipe, &p.Option, &p.Answer, &p.Score, &p.Created_at); err != nil {
+			return c.JSON(fiber.Map{
+				"status":  404,
+				"message": err.Error(),
+			})
+		}
+		l = append(l, p)
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   l,
+	})
+}
+
+func getCodeInCBT_listWithId(c *fiber.Ctx) error {
+	id := c.Params("id")
+	p := new(CBT_listType)
+	if err := db.QueryRowContext(c.Context(), "SELECT code FROM CBT_list WHERE id=?", id).Scan(&p.Code); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   p,
+	})
+}
+
+func getCBT_listWithKelas(c *fiber.Ctx) error {
+	kelas := c.Params("kelas")
+	p := []CBT_listType{}
+	row, err := db.QueryContext(c.Context(), "SELECT id, jenis, name, durasi, min_durasi, mulai, berakhir,acak, code, priority FROM CBT_list WHERE tokelas LIKE ?", "%"+kelas+"%")
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	for row.Next() {
+		var j CBT_listType
+		if err := row.Scan(&j.Id, &j.Jenis, &j.Name, &j.Durasi, &j.Min_durasi, &j.Mulai, &j.Berakhir, &j.Acak, &j.Code, &j.Priority); err != nil {
+			return c.JSON(fiber.Map{
+				"status":  404,
+				"message": err.Error(),
+			})
+		}
+
+		p = append(p, j)
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   p,
+	})
+}
+
+func getCBT_soalWithId(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	p := CBT_soalType{}
+
+	if err := db.QueryRowContext(c.Context(), "SELECT * FROM CBT_soal WHERE id=?", id).Scan(&p.Id, &p.CBT_list_id, &p.Num, &p.Question, &p.Tipe, &p.Option, &p.Answer, &p.Score, &p.Created_at); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   p,
+	})
+}
+
+func InsertCBT_soalMany(c *fiber.Ctx) error {
+	gh := new([]CBT_soalType)
+	if err := c.BodyParser(&gh); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	stmt, err := db.PrepareContext(c.Context(), "INSERT INTO CBT_soal (CBT_list_id, question, tipe, option, answer, score) VALUES (?, ?, ?, ?, ?, ?)")
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	defer stmt.Close()
+
+	var num int
+	for _, u := range *gh {
+		_, err := stmt.Exec(u.CBT_list_id, u.Question, u.Tipe, u.Option, u.Answer, u.Score)
+		if err == nil {
+			num++
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  201,
+		"message": num,
+	})
+}
+func InsertCBT_soal(c *fiber.Ctx) error {
+	u := new(CBT_soalType)
+	if err := c.BodyParser(&u); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "Gagal mendapatkan data",
+		})
+	}
+	_, err := db.ExecContext(c.Context(), "INSERT INTO CBT_soal (CBT_list_id, question, tipe, option, answer, score) VALUES (?, ?, ?, ?, ?, ?)", u.CBT_list_id, u.Question, u.Tipe, u.Option, u.Answer, u.Score)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func DeleteCBT_soal(c *fiber.Ctx) error {
+	id := c.Params("id")
+	_, err := db.ExecContext(c.Context(), "DELETE FROM CBT_soal WHERE id=?", id)
+
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func DeleteAllCBT_soal(c *fiber.Ctx) error {
+	id := c.Params("id")
+	_, err := db.ExecContext(c.Context(), "DELETE FROM CBT_soal WHERE CBT_list_id = ?", id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func UpdateCBT_soal(c *fiber.Ctx) error {
+	soal := new(CBT_soalType)
+	if err := c.BodyParser(&soal); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	_, err := db.ExecContext(c.Context(), "UPDATE CBT_soal SET question=?, option=?, answer=?, score=? WHERE id=?", soal.Question, soal.Option, soal.Answer, soal.Score, soal.Id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func getCBT_resultWithListId(c *fiber.Ctx) error {
+	listid := c.Params("listid")
+
+	rows, err := db.QueryContext(c.Context(), "SELECT * FROM CBT_result WHERE idlist =?", listid)
+
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	defer rows.Close()
+	result := []CBT_resultType{}
+	for rows.Next() {
+		var r CBT_resultType
+		if err := rows.Scan(&r.Id, &r.Idlist, &r.Iduser, &r.Process, &r.Score, &r.Answer, &r.Created_at); err != nil {
+			return c.JSON(fiber.Map{
+				"status":  404,
+				"message": err.Error(),
+			})
+		}
+
+		result = append(result, r)
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   result,
+	})
+}
+func getCBT_resultWithListIdAndUserId(c *fiber.Ctx) error {
+	listid := c.Params("listid")
+	userid := c.Params(("userid"))
+
+	rows, err := db.QueryContext(c.Context(), "SELECT * FROM CBT_result WHERE idlist =? AND userid=?", listid, userid)
+
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	defer rows.Close()
+	result := []CBT_resultType{}
+	for rows.Next() {
+		var r CBT_resultType
+		if err := rows.Scan(&r.Id, &r.Idlist, &r.Iduser, &r.Process, &r.Score, &r.Answer, &r.Created_at); err != nil {
+			return c.JSON(fiber.Map{
+				"status":  404,
+				"message": err.Error(),
+			})
+		}
+
+		result = append(result, r)
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   result,
+	})
+}
+func getCBT_resultWithUserId(c *fiber.Ctx) error {
+	userid := c.Params("userid")
+
+	rows, err := db.QueryContext(c.Context(), "SELECT * FROM CBT_result WHERE iduser =?", userid)
+
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	defer rows.Close()
+	result := []CBT_resultType{}
+	for rows.Next() {
+		var r CBT_resultType
+		if err := rows.Scan(&r.Id, &r.Idlist, &r.Iduser, &r.Process, &r.Score, &r.Answer, &r.Created_at); err != nil {
+			return c.JSON(fiber.Map{
+				"status":  404,
+				"message": err.Error(),
+			})
+		}
+
+		result = append(result, r)
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   result,
+	})
+}
+func getCBT_resultWithId(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var r CBT_resultType
+	if err := db.QueryRowContext(c.Context(), "SELECT * FROM CBT_result WHERE id =?", id).Scan(&r.Id, &r.Idlist, &r.Iduser, &r.Process, &r.Score, &r.Answer, &r.Created_at); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   r,
+	})
+}
+
+func InsertCBT_result(c *fiber.Ctx) error {
+	result := CBT_resultType{}
+	if err := c.BodyParser(&result); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	_, err := db.ExecContext(c.Context(), "INSERT INTO CBT_result (idlist, iduser, process, answer, score) VALUES (?, ?, ?, ?, ?)", result.Idlist, result.Iduser, result.Process, result.Answer, result.Score)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func DeleteCBT_result(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	_, err := db.ExecContext(c.Context(), "DELETE FROM CBT_result WHERE id=?", id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func UpdateCBT_result(c *fiber.Ctx) error {
+	result := new(CBT_resultType)
+	if err := c.BodyParser(&result); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	_, err := db.ExecContext(c.Context(), "UPDATE CBT_result SET process=?, answer=? WHERE idlist=? AND iduser=?", "finish", result.Answer, result.Idlist, result.Iduser)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  201,
+		"message": "berhasil mengupdate",
+	})
+}
+
+func uploadFotoSoal(c *fiber.Ctx) error {
+	file, err := c.FormFile("photo")
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "Gagal Mengambil gambar",
+			"error":   err.Error(),
+		})
+	}
+	// Simpan file di server
+	if err := saveFileSoal(file); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "Gagal Menyimpan gambar",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func saveFileSoal(file *multipart.FileHeader) error {
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	// Simpan file di folder "uploads"
+	dst, err := os.Create("./uploads/image/" + file.Filename)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	if _, err = src.Seek(0, 0); err != nil {
+		return err
+	}
+	if _, err = io.Copy(dst, src); err != nil {
+		return err
+	}
+	return nil
+}
