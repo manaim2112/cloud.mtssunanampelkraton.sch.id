@@ -156,10 +156,11 @@ func InstallTableCBT(c *fiber.Ctx) error {
 			question TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
 			tipe VARCHAR(50) NOT NULL,
 			options TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-			answer TEXT,
+			answer TEXT, 
 			score INT NOT NULL,
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);
+		
 	`)
 	if err != nil {
 		return c.JSON(fiber.Map{
