@@ -116,11 +116,11 @@ func InstallTableGuru(c *fiber.Ctx) error {
 	_, err := db.ExecContext(c.Context(), `
 		CREATE TABLE IF NOT EXISTS guru (
 			id INT NOT NULL AUTO_INCREMENT,
-			pegId VARCHAR(10) NOT NULL UNIQUE,
+			pegId VARCHAR(100) NOT NULL UNIQUE,
 			name VARCHAR(50) NOT NULL,
 			pass VARCHAR(255) NOT NULL,
 			walikelas VARCHAR(10) NULL,
-			jabatan VARCHAR(50) NOT NULL,
+			jabatan VARCHAR(50) NOT NULL DEFAULT "guru",
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (id)
 		);
