@@ -324,8 +324,38 @@ func UpdateCBT_listInPriority(c *fiber.Ctx) error {
 func DeleteCBT_list(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	_, err := db.ExecContext(c.Context(), "DELETE FROM CBT_list WHERE id=?", id)
+	stmt, err := db.BeginTx(c.Context(), nil)
 	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	defer stmt.Rollback()
+
+	_, err = db.ExecContext(c.Context(), "DELETE FROM CBT_result WHERE idlist=?", id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	_, err = db.ExecContext(c.Context(), "DELETE FROM CBT_soal WHERE CBT_list_id=?", id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	_, err = db.ExecContext(c.Context(), "DELETE FROM CBT_list WHERE id=?", id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	if err := stmt.Commit(); err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
 			"message": err.Error(),
