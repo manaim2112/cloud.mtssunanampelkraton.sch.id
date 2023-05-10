@@ -41,6 +41,7 @@ func RouteCBT(app *fiber.App) {
 	ctx.Post("/result/create", InsertCBT_result)
 	ctx.Put("/result/update", UpdateCBT_result)
 	ctx.Delete("/result/id/:id", DeleteCBT_result)
+	ctx.Delete("/result/withlist/id/:id", DeleteCBT_resultWithList)
 
 }
 
@@ -662,6 +663,20 @@ func DeleteCBT_result(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	_, err := db.ExecContext(c.Context(), "DELETE FROM CBT_result WHERE id=?", id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+func DeleteCBT_resultWithList(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	_, err := db.ExecContext(c.Context(), "DELETE FROM CBT_result WHERE idlist=?", id)
 	if err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
