@@ -40,6 +40,7 @@ func RouteCBT(app *fiber.App) {
 	ctx.Get("/result/id/:id", getCBT_resultWithId)
 	ctx.Post("/result/create", InsertCBT_result)
 	ctx.Put("/result/update", UpdateCBT_result)
+	ctx.Put("result/update/withId", UpdateAnswerCBT_resultWIthId)
 	ctx.Delete("/result/id/:id", DeleteCBT_result)
 	ctx.Delete("/result/withlist/id/:id", DeleteCBT_resultWithList)
 
@@ -728,6 +729,29 @@ func UpdateCBT_result(c *fiber.Ctx) error {
 	}
 
 	_, err := db.ExecContext(c.Context(), "UPDATE CBT_result SET process=?, answer=? WHERE idlist=? AND iduser=?", "finish", result.Answer, result.Idlist, result.Iduser)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  201,
+		"message": "berhasil mengupdate",
+	})
+}
+
+func UpdateAnswerCBT_resultWIthId(c *fiber.Ctx) error {
+	result := new(CBT_resultType)
+	if err := c.BodyParser(&result); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	_, err := db.ExecContext(c.Context(), "UPDATE CBT_result SET answer=? WHERE id=?", result.Answer, result.Id)
 	if err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
