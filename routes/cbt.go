@@ -596,7 +596,7 @@ func getCBT_resultWithListIdAndUserId(c *fiber.Ctx) error {
 	listid := c.Params("listid")
 	userid := c.Params(("userid"))
 
-	rows, err := db.QueryContext(c.Context(), "SELECT * FROM CBT_result WHERE idlist =? AND userid=?", listid, userid)
+	rows, err := db.QueryContext(c.Context(), "SELECT * FROM CBT_result WHERE idlist =? AND iduser=?", listid, userid)
 
 	if err != nil {
 		return c.JSON(fiber.Map{

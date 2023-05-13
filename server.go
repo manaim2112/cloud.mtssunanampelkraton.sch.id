@@ -51,6 +51,7 @@ func main() {
 		routes.RoutePage(app)
 		routes.RouteKegiatan(app)
 		routes.RoutePerpus(app)
+
 	}
 
 	app.Listen(":5001")
