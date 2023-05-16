@@ -23,6 +23,7 @@ func RouteUser(r *fiber.App) {
 	ctx.Post("/createmany", InsertUserMany)
 	ctx.Post("/create", InsertUser)
 	ctx.Get("/count", CountUser)
+
 }
 
 type User struct {

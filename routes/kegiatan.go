@@ -23,6 +23,7 @@ type KegiatanType struct {
 	Thumb      *string  `json:"thumb"`
 	Content    *string  `json:"content"`
 	Created_at *[]uint8 `json:"created_at"`
+	Updated_at *[]uint8 `json:"updated_at"`
 }
 
 func CountKegiatan(c *fiber.Ctx) error {
@@ -53,7 +54,7 @@ func getupdateKegiatan(c *fiber.Ctx) error {
 	defer row.Close()
 	for row.Next() {
 		var h KegiatanType
-		if err := row.Scan(&h.Id, &h.Name, &h.Thumb, &h.Content, &h.Created_at); err != nil {
+		if err := row.Scan(&h.Id, &h.Name, &h.Thumb, &h.Content, &h.Created_at, &h.Updated_at); err != nil {
 			return c.JSON(fiber.Map{
 				"status":  404,
 				"message": err.Error(),
@@ -72,7 +73,7 @@ func getKegiatanWithId(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	kegiatan := new(KegiatanType)
-	if err := db.QueryRowContext(c.Context(), "SELECT * FROM kegiatan WHERE id=?", id).Scan(&kegiatan.Id, &kegiatan.Name, &kegiatan.Thumb, &kegiatan.Content, &kegiatan.Created_at); err != nil {
+	if err := db.QueryRowContext(c.Context(), "SELECT * FROM kegiatan WHERE id=?", id).Scan(&kegiatan.Id, &kegiatan.Name, &kegiatan.Thumb, &kegiatan.Content, &kegiatan.Created_at, &kegiatan.Updated_at); err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
 			"message": err.Error(),
@@ -165,7 +166,7 @@ func getKegiatanWithTen(c *fiber.Ctx) error {
 	defer row.Close()
 	for row.Next() {
 		var k KegiatanType
-		if err := row.Scan(&k.Id, &k.Name, &k.Thumb, &k.Content, &k.Created_at); err != nil {
+		if err := row.Scan(&k.Id, &k.Name, &k.Thumb, &k.Content, &k.Created_at, &k.Updated_at); err != nil {
 			return c.JSON(fiber.Map{
 				"status":  404,
 				"message": err.Error(),
