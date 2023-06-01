@@ -20,6 +20,7 @@ func RouteCBT(app *fiber.App) {
 	ctx.Put("/list/update_priority", UpdateCBT_listInPriority)
 	ctx.Put("/list/update_start_end", UpdateCBT_listInMulaiBerakhir)
 	ctx.Put("/list/update_code", UpdateCBT_listCode)
+	ctx.Put("/list/update_creator", UpdateCBT_listCreator)
 	ctx.Delete("/list/id/:id", DeleteCBT_list)
 	ctx.Get("/list/count", CountList)
 	ctx.Get("/list/code/id/:id", getCodeInCBT_listWithId)
@@ -741,7 +742,27 @@ func UpdateCBT_result(c *fiber.Ctx) error {
 		"message": "berhasil mengupdate",
 	})
 }
+func UpdateCBT_listCreator(c *fiber.Ctx) error {
+	result := new(CBT_listType)
+	if err := c.BodyParser(&result); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	_, err := db.ExecContext(c.Context(), "UPDATE CBT_list SET creator=? WHERE id=?", result.Creator, result.Id)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status":  201,
+		"message": "berhasil mengupdate",
+	})
 
+}
 func UpdateAnswerCBT_resultWIthId(c *fiber.Ctx) error {
 	result := new(CBT_resultType)
 	if err := c.BodyParser(&result); err != nil {
