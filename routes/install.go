@@ -13,6 +13,7 @@ func RouteInstall(App *fiber.App) {
 	ctx := App.Group("/api/install")
 	ctx.Post("/settingDB", SetENV)
 	ctx.Post("/table_user", InstallTableUser)
+	ctx.Post("/table_user_detail", InstallTableUserDetail)
 	ctx.Post("/table_kelas", InstallTableKelas)
 	ctx.Post("/table_guru", InstallTableGuru)
 	ctx.Post("/table_cbt", InstallTableCBT)
@@ -20,6 +21,7 @@ func RouteInstall(App *fiber.App) {
 	ctx.Post("/table_materi", InstallTableMateri)
 	ctx.Post("/table_kegiatan", InstallTableKegiatan)
 	ctx.Post("/table_perpus", InstallTablePerpus)
+	ctx.Post("/table_payment", InstallTablePayment)
 	ctx.Post("/insert_new_user", InsertNewUser)
 }
 
@@ -57,6 +59,196 @@ func SetENV(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status":  202,
 		"message": "Berhasil menyimpan data database",
+	})
+}
+
+func InstallTablePpdb(c *fiber.Ctx) error {
+	_, err := db.ExecContext(c.Context(), `
+		CREATE TABLE IF NOT EXISTS ppdb (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			sesi_primaryId INT NOT NULL,
+			publish BOOLEAN DEFAULT 1,
+			content TEXT NULL,
+		)
+	
+	`)
+
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status": 404,
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+
+func InstallTableSesi(c *fiber.Ctx) error {
+	stmt, err := db.BeginTx(c.Context(), nil)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "gagal membuat transaction",
+			"error":   err.Error(),
+		})
+	}
+	defer stmt.Rollback()
+
+	_, err = stmt.ExecContext(c.Context(), `
+		CREATE TABLE IF NOT EXISTS sesi_primary (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			name VARCHAR(255) NOT NULL,
+			publish BOOLEAN DEFAULT FALSE,
+			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "gagal membuat table sesi",
+			"error":   err.Error(),
+		})
+	}
+
+	_, err = stmt.ExecContext(c.Context(), `
+		CREATE TABLE IF NOT EXISTS sesi_secondary (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			sesiId INT NOT NULL,
+			name VARCHAR(255) NOT NULL,
+			endsession BOOLEAN DEFAULT FALSE,
+			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "gagal membuat table sesi",
+			"error":   err.Error(),
+		})
+	}
+	if err := stmt.Commit(); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "gagal membuat table sesi",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status":  201,
+		"message": "Berhasil membuat table sesi",
+	})
+}
+
+func InstallTablePayment(c *fiber.Ctx) error {
+	stmt, err := db.BeginTx(c.Context(), nil)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "gagal membuat table payment",
+			"error":   err,
+		})
+	}
+	defer stmt.Rollback()
+
+	_, err = stmt.ExecContext(c.Context(), `
+		CREATE TABlE IF NOT EXISTS payment_list (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			name VARCHAR(255) NOT NULL,
+			list TEXT,
+			total VARCHAR(100) NOT NULL,
+		)
+	`)
+
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "gagal membuat table payment",
+			"error":   err,
+		})
+	}
+
+	_, err = stmt.ExecContext(c.Context(), `
+		CREATE TABLE IF NOT EXISTS payment_history (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			userId INT NOT NULL,
+			paymentId INT NOT NULL,
+			name VARCHAR(255) NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP 
+		)
+	`)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "gagal membuat table payment",
+			"error":   err,
+		})
+	}
+
+	if err := stmt.Commit(); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "gagal membuat table payment",
+			"error":   err,
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status":  201,
+		"message": "Berhasil membuat table Payment",
+	})
+}
+
+func InstallTableUserDetail(c *fiber.Ctx) error {
+	_, err := db.ExecContext(c.Context(), `
+		CREATE TABLE IF NOT EXISTS user_detail (
+			id INT NOT NULL AUTO INCREMENT,
+			userId INT NOT NULL,
+			fullname VARCHAR(255) NULL,
+			alamat VARCHAR(255) NULL,
+			kodepos VARCHAR(25) NULL,
+			nokk VARCHAR(20) NULL,
+			kk_photo VARCHAR(255) NULL,
+			nik VARCHAR(20) NULL,
+			tgl_tmp_lahir VARCHAR(255) NULL,
+			ijazah_photo VARCHAR(255) NULL,
+
+
+			ayah_name VARCHAR(255) NULL,
+			ayah_nik_photo VARCHAR(255) NULL,
+			ayah_nik VARCHAR(20) NULL,
+			ayah_alamat VARCHAR(255) NULL,
+			ayah_tgl_tmp_lahir VARCHAR(255) NULL,
+			ayah_penghasilan VARCHAR(255) NULL,
+			ayah_pekerjaan VARCHAR(255) NULL,
+			ayah_status VARCHAR(100) NULL,
+			ayah_max_pendidikan VARCHAR(100) NULL,
+
+			ibu_name VARCHAR(255) NULL,
+			ibu_nik_photo VARCHAR(255) NULL,
+			ibu_nik VARCHAR(20) NULL,
+			ibu_alamat VARCHAR(255) NULL,
+			ibu_tgl_tmp_lahir VARCHAR(255) NULL,
+			ibu_penghasilan VARCHAR(255) NULL,
+			ibu_pekerjaan VARCHAR(255) NULL,
+			ibu_status VARCHAR(100) NULL,
+			ibu_max_pendidikan VARCHAR(100) NULL
+		)
+	
+	`)
+
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "gagal membuat table user",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  201,
+		"message": "Berhasil membuat table user",
 	})
 }
 
@@ -100,7 +292,7 @@ func InstallTableKelas(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"status":  404,
 			"message": "gagal membuat table Kelas",
-			"error":   err,
+			"error":   err.Error(),
 		})
 	}
 

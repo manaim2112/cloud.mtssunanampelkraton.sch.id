@@ -1,1 +1,7 @@
 .env
+uploads/image/*
+uploads/photo_book/*
+photo_user/*
+
+go.mod
+go.sum
