@@ -158,7 +158,6 @@ func main() {
 			}
 			return c.SendFile(FSPATH + "index.html")
 		})
-
 	}
 
 	app.Listen(":5002")

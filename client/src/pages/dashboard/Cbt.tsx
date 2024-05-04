@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
-import React, {Suspense, useEffect, useState } from "react";
+import React, {startTransition, Suspense, useEffect, useState } from "react";
 import { pathChangePriorityCBTList, pathGetCBTListWithId, pathGetSoalWithIdList, pathUpdateCBTList } from "@/service/path";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -161,41 +161,43 @@ export default function Cbt() {
     nav("/dashboard/cbt/id/" + id + "/lacak");
   };
   useEffect(() => {
-    fetch(pathGetSoalWithIdList(Number(id)))
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.status === 200) {
-          const data: HTML[] = [];
-          res.data.forEach(
-            (v: {
-              id: number;
-              question: string;
-              tipe: string;
-              options: string;
-              answer: string;
-              score: string;
-            }) => {
-              data.push({
-                id: v.id,
-                soal: v.question,
-                tipe: v.tipe,
-                jawaban: JSON.parse(v.options),
-                kunci: JSON.parse(v.answer),
-                skor: Number(v.score),
-              });
-            }
-          );
-          setHtml(data);
-        }
-      });
-
-    fetch(pathGetCBTListWithId(Number(id)))
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.status === 200) {
-          setDetail(res.data);
-        }
-      });
+    startTransition(() => {
+      fetch(pathGetSoalWithIdList(Number(id)))
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.status === 200) {
+            const data: HTML[] = [];
+            res.data.forEach(
+              (v: {
+                id: number;
+                question: string;
+                tipe: string;
+                options: string;
+                answer: string;
+                score: string;
+              }) => {
+                data.push({
+                  id: v.id,
+                  soal: v.question,
+                  tipe: v.tipe,
+                  jawaban: JSON.parse(v.options),
+                  kunci: JSON.parse(v.answer),
+                  skor: Number(v.score),
+                });
+              }
+            );
+            setHtml(data);
+          }
+        });
+  
+      fetch(pathGetCBTListWithId(Number(id)))
+        .then((r) => r.json())
+        .then((res) => {
+          if (res.status === 200) {
+            setDetail(res.data);
+          }
+        });
+    })
   }, [id]);
 
   const handleUpload = () => {
@@ -334,7 +336,7 @@ export default function Cbt() {
               </Card>
             ))}
           </div>
-          <div className="order-1 lg:order-2">
+          <div className="order-1 lg:order-2 lg:sticky lg:top-7">
             <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
               <CardHeader className="flex flex-row items-start bg-muted/50">
                 <div className="grid gap-0.5">

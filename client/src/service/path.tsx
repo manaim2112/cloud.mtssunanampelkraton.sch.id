@@ -1,4 +1,4 @@
-export const BASE_URL = "http://" + window.location.hostname + ":5001/api"
+export const BASE_URL = "http://" + window.location.hostname + ":5002/api"
 export const WS_URL = (id:number) => "ws://" + window.location.hostname + ":5001/ws/cbt/" + id 
 
 export const pathInstallTable = (t:string) => BASE_URL + "/install/table_"+ t;

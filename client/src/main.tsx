@@ -1,20 +1,21 @@
-import React, { lazy } from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom'
 
-const Index = lazy(() => import("./pages/Index.tsx"))
-const Auth = lazy(() => import("./pages/Auth.tsx"))
-const Login = lazy(() => import("./pages/Login.tsx"))
-const Dashboard = lazy(() => import("./pages/dashboard/Index.tsx"))
-const Cbt = lazy(() => import("./pages/dashboard/Cbt.tsx"))
-const LacakCbt = lazy(() => import("./pages/dashboard/LacakCbt.tsx"))
+
 import { Install } from './pages/Install.tsx'
 import { Users } from './pages/dashboard/Users.tsx'
 
 import IndexGuest from './pages/guest/Index.tsx'
 import { CBTTest } from './pages/guest/CBTTest.tsx'
+import Index from './pages/Index.tsx'
+import Auth from './pages/Auth.tsx'
+import Dashboard from './pages/dashboard/Index.tsx'
+import Cbt from './pages/dashboard/Cbt.tsx'
+import LacakCbt from './pages/dashboard/LacakCbt.tsx'
+import Login from './pages/Login.tsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(

@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, startTransition, Suspense, useEffect, useState } from "react";
 import Navbar from "./Navbar";
 import { pathCBTListAll, pathCountCBTList, pathCountUsers } from "@/service/path";
 import { CbtInterface } from "@/lib/interface/CbtInterface";
@@ -25,69 +25,74 @@ export function ListCountContent() {
   const [user] = useState<RefreshAdmin|null>(getAuthorizeAdmin())
 
   useEffect(() => {
-    fetch(pathCountUsers).then(r=>r.json()).then(r => {
-      if(r.status === 200) {
-        const c = count;
-        c.user = r.count;
-        setCount(c);
-      }
+    startTransition(() => {
+      fetch(pathCountUsers).then(r=>r.json()).then(r => {
+        if(r.status === 200) {
+          const c = count;
+          c.user = r.count;
+          setCount(c);
+        }
+      })
+
+      fetch(pathCountCBTList).then(r=>r.json()).then(r => {
+        if(r.status === 200) {
+          const c = count;
+          c.cbt = r.count;
+          setCount(c);
+        }
+      })
     })
 
 
-    fetch(pathCountCBTList).then(r=>r.json()).then(r => {
-      if(r.status === 200) {
-        const c = count;
-        c.cbt = r.count;
-        setCount(c);
-      }
-    })
 
   }, [count]);
   return (
-    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
-      <Card className="sm:col-span-2" x-chunk="dashboard-05-chunk-0">
-        <CardHeader className="pb-3">
-          <CardTitle className="uppercase">{user?.name}</CardTitle>
-          <CardDescription className="max-w-lg text-balance leading-relaxed">
-            Selamat datang kembali di tempat managemen ujian berbasis semi
-            offline, anda bisa menambahkan UJIAN melalui tombol dibawah ini
-          </CardDescription>
-        </CardHeader>
-        <CardFooter>
-          {
-            user?.jabatan == "operator" && (
-              <Button>Buat Ujian Baru</Button>
-            )
-          }
-        </CardFooter>
-      </Card>
-      <Card x-chunk="dashboard-05-chunk-1">
-        <CardHeader className="pb-2">
-          <CardDescription>Total Mapel</CardDescription>
-          <CardTitle className="text-4xl">{count.cbt}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-xs text-muted-foreground">di tahun ini</div>
-        </CardContent>
-        <CardFooter>
-          <Progress value={25} aria-label="25% increase" />
-        </CardFooter>
-      </Card>
-      <Card x-chunk="dashboard-05-chunk-2">
-        <CardHeader className="pb-2">
-          <CardDescription>Total Peserta didik</CardDescription>
-          <CardTitle className="text-4xl">{count.user}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-xs text-muted-foreground">
-            +10% from last month
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Progress value={12} aria-label="12% increase" />
-        </CardFooter>
-      </Card>
-    </div>
+    <Suspense fallback={"Tunggu Sebentar"}>
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+        <Card className="sm:col-span-2" x-chunk="dashboard-05-chunk-0">
+          <CardHeader className="pb-3">
+            <CardTitle className="uppercase">{user?.name}</CardTitle>
+            <CardDescription className="max-w-lg text-balance leading-relaxed">
+              Selamat datang kembali di tempat managemen ujian berbasis semi
+              offline, anda bisa menambahkan UJIAN melalui tombol dibawah ini
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            {
+              user?.jabatan == "operator" && (
+                <Button>Buat Ujian Baru</Button>
+              )
+            }
+          </CardFooter>
+        </Card>
+        <Card x-chunk="dashboard-05-chunk-1">
+          <CardHeader className="pb-2">
+            <CardDescription>Total Mapel</CardDescription>
+            <CardTitle className="text-4xl">{count.cbt}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xs text-muted-foreground">di tahun ini</div>
+          </CardContent>
+          <CardFooter>
+            <Progress value={25} aria-label="25% increase" />
+          </CardFooter>
+        </Card>
+        <Card x-chunk="dashboard-05-chunk-2">
+          <CardHeader className="pb-2">
+            <CardDescription>Total Peserta didik</CardDescription>
+            <CardTitle className="text-4xl">{count.user}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xs text-muted-foreground">
+              +10% from last month
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Progress value={12} aria-label="12% increase" />
+          </CardFooter>
+        </Card>
+      </div>
+    </Suspense>
   );
 }
 
@@ -324,17 +329,24 @@ export const DetailActive = (props: { mapel: CbtInterface[] }) => {
 export default function Dashboard() {
   const [mapel, setMapel] = useState<Array<CbtInterface>>([]);
   useEffect(() => {
-    fetch(pathCBTListAll).then(r=>r.json()).then(r => {
-      if(r.status === 200) {
-        setMapel(r.data)
-      }
+    startTransition(() => {
+      fetch(pathCBTListAll).then(r=>r.json()).then(r => {
+        if(r.status === 200) {
+          setMapel(r.data)
+        }
+      })
     })
   }, []);
   return (
+    <Suspense fallback="TUnggu Sebentar">
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <Sidebar />
+      <Suspense fallback="WAIT">
+        <Sidebar />
+      </Suspense>
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <Navbar />
+        <Suspense fallback="WAIT">
+          <Navbar />
+        </Suspense>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
           <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
             <ListCountContent />
@@ -346,5 +358,6 @@ export default function Dashboard() {
         </main>
       </div>
     </div>
+    </Suspense>
   );
 }
