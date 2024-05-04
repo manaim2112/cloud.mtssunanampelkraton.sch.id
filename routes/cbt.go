@@ -1,15 +1,19 @@
 package routes
 
 import (
+	"database/sql"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func RouteCBT(app *fiber.App) {
 	ctx := app.Group("/api/cbt")
+	ctx.Get("/image/:name", getImageCBT)
 	ctx.Get("/list", getCBT_listWithGuruId)
 	ctx.Get("/list/id/:id", getCBT_listWithId)
 	ctx.Get("/list/kelas/:kelas", getCBT_listWithKelas)
@@ -38,6 +42,7 @@ func RouteCBT(app *fiber.App) {
 	ctx.Get("/result/list/:listid", getCBT_resultWithListId)
 	ctx.Get("/result/user/:userid", getCBT_resultWithUserId)
 	ctx.Get("/result/list/:listid/user/:userid", getCBT_resultWithListIdAndUserId)
+	ctx.Get("/result/list/:listid/user/:userid/time", getCBT_resultTimeWithListIdAndUserId)
 	ctx.Get("/result/id/:id", getCBT_resultWithId)
 	ctx.Post("/result/create", InsertCBT_result)
 	ctx.Put("/result/update", UpdateCBT_result)
@@ -84,6 +89,29 @@ type CBT_resultType struct {
 	Score      *int     `json:"score"`
 	Answer     *string  `json:"answer"`
 	Created_at *[]uint8 `json:"created_at"`
+}
+
+func getImageCBT(c *fiber.Ctx) error {
+	// Extract the image name from the path parameters
+	imageName := c.Params("name")
+
+	// Assuming your images are stored in a directory named "images"
+	// You can adjust the path to match your actual directory structure
+	imagePath := "./uploads/image/" + imageName
+
+	// Read the image file
+	image, err := ioutil.ReadFile(imagePath)
+	if err != nil {
+		// Return an error response if the image file cannot be read
+		return c.Status(fiber.StatusNotFound).SendString("Image not found")
+	}
+
+	// Set the appropriate content type header for an image
+	c.Set(fiber.HeaderContentType, "image/jpeg") // Adjust content type based on your image format
+
+	// Send the image in the response
+	return c.Send(image)
+
 }
 
 func CountList(c *fiber.Ctx) error {
@@ -593,9 +621,47 @@ func getCBT_resultWithListId(c *fiber.Ctx) error {
 		"data":   result,
 	})
 }
+
+func getCBT_resultTimeWithListIdAndUserId(c *fiber.Ctx) error {
+	listid := c.Params("listid")
+	userid := c.Params("userid")
+	row := db.QueryRowContext(c.Context(), "SELECT created_at FROM CBT_result WHERE idlist =? AND iduser=? LIMIT 1", listid, userid)
+
+	var createdAtStr string // Memindai ke dalam string
+	err := row.Scan(&createdAtStr)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"status":  404,
+				"message": "Data not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  500,
+			"message": err.Error(),
+		})
+	}
+
+	createdAt, err := time.Parse("2006-01-02 15:04:05", createdAtStr) // Parsing string ke time.Time
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  500,
+			"message": err.Error(),
+		})
+	}
+
+	currentTime := time.Now()
+
+	return c.JSON(fiber.Map{
+		"status":       200,
+		"created_at":   createdAt,
+		"current_time": currentTime,
+	})
+}
+
 func getCBT_resultWithListIdAndUserId(c *fiber.Ctx) error {
 	listid := c.Params("listid")
-	userid := c.Params(("userid"))
+	userid := c.Params("userid")
 
 	rows, err := db.QueryContext(c.Context(), "SELECT * FROM CBT_result WHERE idlist =? AND iduser=?", listid, userid)
 
@@ -806,6 +872,7 @@ func uploadFotoSoal(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"status": 201,
+		"src":    "/cbt/image/" + file.Filename + ".png",
 	})
 }
 

@@ -13,6 +13,7 @@ func RouteUser(r *fiber.App) {
 	ctx := r.Group("/api/user")
 
 	ctx.Get("/kelas/:kelas", getUserWithParamKelas)
+	ctx.Get("/ruang/:ruang", getUserWithParamRuang)
 
 	ctx.Get("/all", getUserAll)
 	ctx.Static("/photo", "./uploads/photo_user")
@@ -32,6 +33,8 @@ type User struct {
 	Pass       *string  `json:"pass"`
 	Name       *string  `json:"name"`
 	Kelas      *string  `json:"kelas"`
+	Ruang      *string  `json:"ruang"`
+	Sesi       *string  `json:"sesi"`
 	Photo      *string  `json:"photo"`
 	Created_at *[]uint8 `json:"created_at"`
 }
@@ -113,7 +116,7 @@ func getUserAll(c *fiber.Ctx) error {
 
 	for u.Next() {
 		var p User
-		if err := u.Scan(&p.Id, &p.Nisn, &p.Pass, &p.Name, &p.Pass, &p.Photo, &p.Created_at); err != nil {
+		if err := u.Scan(&p.Id, &p.Nisn, &p.Pass, &p.Name, &p.Kelas, &p.Ruang, &p.Sesi, &p.Photo, &p.Created_at); err != nil {
 			return c.JSON(fiber.Map{
 				"status":  404,
 				"message": "Gagal Mengambil Data",
@@ -130,6 +133,36 @@ func getUserAll(c *fiber.Ctx) error {
 
 }
 
+func getUserWithParamRuang(c *fiber.Ctx) error {
+	ruang := c.Params("ruang")
+
+	rows, err := db.Query("SELECT * FROM user WHERE ruang = ? ", ruang)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": "Gagal Mengambil Data",
+			"data":    []string{},
+		})
+	}
+
+	defer rows.Close()
+	user := []User{}
+	for rows.Next() {
+		var Us User
+		if err := rows.Scan(&Us.Id, &Us.Nisn, &Us.Pass, &Us.Name, &Us.Kelas, &Us.Ruang, &Us.Sesi, &Us.Photo, &Us.Created_at); err != nil {
+			return c.JSON(fiber.Map{
+				"status":  401,
+				"message": "Gagal pengambilan data dengan di scan",
+				"data":    []string{},
+			})
+		}
+		user = append(user, Us)
+	}
+	return c.JSON(fiber.Map{
+		"status": 200,
+		"data":   user,
+	})
+}
 func getUserWithParamKelas(c *fiber.Ctx) error {
 	kelas := c.Params("kelas")
 
@@ -146,7 +179,7 @@ func getUserWithParamKelas(c *fiber.Ctx) error {
 	user := []User{}
 	for rows.Next() {
 		var Us User
-		if err := rows.Scan(&Us.Id, &Us.Nisn, &Us.Pass, &Us.Name, &Us.Kelas, &Us.Photo, &Us.Created_at); err != nil {
+		if err := rows.Scan(&Us.Id, &Us.Nisn, &Us.Pass, &Us.Name, &Us.Kelas, &Us.Ruang, &Us.Sesi, &Us.Photo, &Us.Created_at); err != nil {
 			return c.JSON(fiber.Map{
 				"status":  401,
 				"message": "Gagal pengambilan data dengan di scan",
@@ -164,7 +197,7 @@ func getUserWithParamKelas(c *fiber.Ctx) error {
 func getUserWithId(c *fiber.Ctx) error {
 	user := new(User)
 	Id := c.Params("id")
-	if err := db.QueryRow("SELECT * FROM user WHERE id =?", Id).Scan(&user.Id, &user.Nisn, &user.Pass, &user.Name, &user.Kelas, &user.Photo, &user.Created_at); err != nil {
+	if err := db.QueryRow("SELECT * FROM user WHERE id =?", Id).Scan(&user.Id, &user.Nisn, &user.Pass, &user.Name, &user.Kelas, &user.Ruang, &user.Sesi, &user.Photo, &user.Created_at); err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
 			"message": "Gagal Mengambil Data",
@@ -188,7 +221,7 @@ func UpdateUserWithId(c *fiber.Ctx) error {
 			"data":    []string{},
 		})
 	}
-	_, err := db.ExecContext(c.Context(), "UPDATE user SET nisn=?, pass=?, name=?, kelas=?, photo=? WHERE id = ?", user.Nisn, user.Pass, user.Name, user.Kelas, user.Photo, user.Id)
+	_, err := db.ExecContext(c.Context(), "UPDATE user SET nisn=?, pass=?, name=?, kelas=?, ruang=?, sesi=?, photo=? WHERE id = ?", user.Nisn, user.Pass, user.Name, user.Kelas, user.Ruang, user.Sesi, user.Photo, user.Id)
 	if err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
@@ -230,7 +263,7 @@ func InsertUserMany(c *fiber.Ctx) error {
 			"error":   err.Error(),
 		})
 	}
-	stmt, err := db.PrepareContext(c.Context(), "INSERT INTO user (nisn, pass, name, kelas) VALUES (?, ?, ?, ?)")
+	stmt, err := db.PrepareContext(c.Context(), "INSERT INTO user (nisn, pass, name, kelas, ruang, sesi) VALUES (?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
@@ -242,7 +275,7 @@ func InsertUserMany(c *fiber.Ctx) error {
 	defer stmt.Close()
 	var num int
 	for _, u := range *user {
-		_, err := stmt.Exec(u.Nisn, u.Pass, u.Name, u.Kelas)
+		_, err := stmt.Exec(u.Nisn, u.Pass, u.Name, u.Kelas, u.Ruang, u.Sesi)
 		if err == nil {
 			num++
 		}
@@ -264,7 +297,7 @@ func InsertUser(c *fiber.Ctx) error {
 			"data":    []string{},
 		})
 	}
-	_, err := db.ExecContext(c.Context(), "INSERT INTO user (nisn, pass, name, kelas) VALUES (?, ?, ?, ?)", u.Nisn, u.Pass, u.Name, u.Kelas)
+	_, err := db.ExecContext(c.Context(), "INSERT INTO user (nisn, pass, name, kelas, ruang, sesi) VALUES (?, ?, ?, ?)", u.Nisn, u.Pass, u.Name, u.Kelas, u.Ruang, u.Sesi)
 
 	if err != nil {
 		return c.JSON(fiber.Map{

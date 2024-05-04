@@ -15,6 +15,8 @@ func RouteInstall(App *fiber.App) {
 	ctx.Post("/table_user", InstallTableUser)
 	ctx.Post("/table_user_detail", InstallTableUserDetail)
 	ctx.Post("/table_kelas", InstallTableKelas)
+	ctx.Post("/table_ruang", InstallTableRuang)
+	ctx.Post("/table_sesi", InstallTableSessi)
 	ctx.Post("/table_guru", InstallTableGuru)
 	ctx.Post("/table_cbt", InstallTableCBT)
 	ctx.Post("/table_page", InstallTablePage)
@@ -62,13 +64,53 @@ func SetENV(c *fiber.Ctx) error {
 	})
 }
 
+func InstallTableSessi(c *fiber.Ctx) error {
+	_, err := db.ExecContext(c.Context(), `
+		CREATE TABLE IF NOT EXISTS sesi (
+			id INT AUTO_INCREMENT,
+			name VARCHAR(255) NOT NULL,
+			PRIMARY KEY (id)
+		)
+	`)
+	if err != nil {
+		return c.JSON(fiber.Map{
+			"status": 404,
+			"error":  err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
+func InstallTableRuang(c *fiber.Ctx) error {
+	_, err := db.ExecContext(c.Context(), `
+		CREATE TABLE IF NOT EXISTS ruang (
+			id INT AUTO_INCREMENT,
+			name VARCHAR(255) NOT NULL,
+			PRIMARY KEY (id)
+		)
+	`)
+
+	if err != nil {
+
+		return c.JSON(fiber.Map{
+			"status": 404,
+			"error":  err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": 201,
+	})
+}
 func InstallTablePpdb(c *fiber.Ctx) error {
 	_, err := db.ExecContext(c.Context(), `
 		CREATE TABLE IF NOT EXISTS ppdb (
 			id INT AUTO_INCREMENT PRIMARY KEY,
 			sesi_primaryId INT NOT NULL,
 			publish BOOLEAN DEFAULT 1,
-			content TEXT NULL,
+			content TEXT NULL
 		)
 	
 	`)
@@ -261,6 +303,8 @@ func InstallTableUser(c *fiber.Ctx) error {
 			pass VARCHAR(255) NOT NULL,
 			name VARCHAR(50) NOT NULL,
 			kelas VARCHAR(10) NOT NULL,
+			ruang VARCHAR(10) NOT NULL,
+			sesi VARCHAR(10) NOT NULL,
 			photo VARCHAR(150) NULL,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (id)
@@ -608,7 +652,7 @@ func InstallTablePerpus(c *fiber.Ctx) error {
 func InsertNewUser(c *fiber.Ctx) error {
 	_, err := db.ExecContext(c.Context(), `
 		INSERT INTO guru (pegId, name, pass, jabatan) VALUES (?, ?, ?, ?)
-	`, 12345, "admin", "1234", "operator")
+	`, "admin", "administrator", "1234", "operator")
 
 	if err != nil {
 		return c.JSON(fiber.Map{

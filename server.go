@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"os"
 	"path"
@@ -15,11 +14,44 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func init() {
-
-}
-
 const FSPATH = "./public/"
+
+type client struct{} // Add more data to this type if needed
+
+var clients = make(map[*websocket.Conn]client) // Note: although large maps with pointer-like types (e.g. strings) as keys are slow, using pointers themselves as keys is acceptable and fast
+var register = make(chan *websocket.Conn)
+var broadcast = make(chan string)
+var unregister = make(chan *websocket.Conn)
+
+func runHub() {
+	for {
+		select {
+		case connection := <-register:
+			clients[connection] = client{}
+			log.Println("connection registered")
+
+		case message := <-broadcast:
+			log.Println("message received:", message)
+
+			// Send the message to all clients
+			for connection := range clients {
+				if err := connection.WriteMessage(websocket.TextMessage, []byte(message)); err != nil {
+					log.Println("write error:", err)
+
+					unregister <- connection
+					connection.WriteMessage(websocket.CloseMessage, []byte{})
+					connection.Close()
+				}
+			}
+
+		case connection := <-unregister:
+			// Remove the client from the hub
+			delete(clients, connection)
+
+			log.Println("connection unregistered")
+		}
+	}
+}
 
 func main() {
 	app := fiber.New(fiber.Config{
@@ -41,39 +73,46 @@ func main() {
 	// // 	trypath := path.Join(buildDir, c.Requ)
 	// // })
 
-	app.Get("/ws", websocket.New(func(c *websocket.Conn) {
-		// New WebSocket connection
-		log.Println("Client connected")
+	app.Use("/ws", func(c *fiber.Ctx) error {
+		// IsWebSocketUpgrade returns true if the client
+		// requested upgrade to the WebSocket protocol.
+		if websocket.IsWebSocketUpgrade(c) {
+			c.Locals("allowed", true)
+			return c.Next()
+		}
+		return fiber.ErrUpgradeRequired
+	})
 
-		ctx, cancel := context.WithCancel(context.Background())
+	go runHub()
+
+	app.Get("/ws/cbt/:id", websocket.New(func(c *websocket.Conn) {
+		// When the function returns, unregister the client and close the connection
 		defer func() {
-			log.Println("Client disconnected")
+			unregister <- c
 			c.Close()
-			cancel()
 		}()
 
-		go func() {
-			// Wait for the context to be canceled
-			<-ctx.Done()
-		}()
+		// Register the client
+		register <- c
 
 		for {
-			// Read message from the client
-			_, msg, err := c.ReadMessage()
+			messageType, message, err := c.ReadMessage()
 			if err != nil {
-				log.Println("Error reading message:", err)
-				break
-			}
-			// Print received message
-			log.Printf("Received: %s", msg)
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					log.Println("read error:", err)
+				}
 
-			// Send message to all connected clients
-			err = c.WriteMessage(websocket.TextMessage, msg)
-			if err != nil {
-				log.Println("Error sending message:", err)
-				break
+				return // Calls the deferred function, i.e. closes the connection on error
+			}
+
+			if messageType == websocket.TextMessage {
+				// Broadcast the received message
+				broadcast <- string(message)
+			} else {
+				log.Println("websocket message received of type", messageType)
 			}
 		}
+
 	}))
 
 	if err != nil {
@@ -96,6 +135,9 @@ func main() {
 		routes.RoutePage(app)
 		routes.RouteKegiatan(app)
 		routes.RoutePerpus(app)
+		routes.RouteRuang(app)
+		routes.RouteSesi(app)
+		routes.RoutePdf(app)
 
 		app.Static("/", FSPATH)
 

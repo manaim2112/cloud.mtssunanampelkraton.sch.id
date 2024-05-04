@@ -65,7 +65,7 @@ func LoginUser(c *fiber.Ctx) error {
 		})
 	}
 	gu := User{}
-	if err := db.QueryRowContext(c.Context(), "SELECT id, nisn, name, kelas, photo, created_at FROM user WHERE nisn=? AND pass=?", userLogin.Nisn, userLogin.Pass).Scan(&gu.Id, &gu.Nisn, &gu.Name, &gu.Kelas, &gu.Photo, &gu.Created_at); err != nil {
+	if err := db.QueryRowContext(c.Context(), "SELECT id, nisn, name, kelas, ruang, sesi, photo, created_at FROM user WHERE nisn=? AND pass=?", userLogin.Nisn, userLogin.Pass).Scan(&gu.Id, &gu.Nisn, &gu.Name, &gu.Kelas, &gu.Ruang, &gu.Sesi, &gu.Photo, &gu.Created_at); err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
 			"message": err.Error(),
