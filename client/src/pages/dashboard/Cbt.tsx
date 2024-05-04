@@ -321,7 +321,7 @@ export default function Cbt() {
                           key={vk}
                           className="mx-2"
                           variant={
-                            v.kunci.includes(alphabet[vk])
+                            v.kunci.includes(alphabet[vk]) || v.kunci.includes(vk)
                               ? "default"
                               : "outline"
                           }

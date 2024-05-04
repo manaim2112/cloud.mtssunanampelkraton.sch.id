@@ -45,7 +45,7 @@ export interface HTML {
     soal: string;
     tipe: string;
     jawaban: string[];
-    kunci: string[];
+    kunci: (string|number)[];
     skor: number;
   }
 

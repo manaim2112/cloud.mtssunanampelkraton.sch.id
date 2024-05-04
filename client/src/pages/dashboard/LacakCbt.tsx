@@ -1,41 +1,22 @@
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { Suspense, useEffect, useState } from "react";
-import {
-  pathGetCBTListWithId,
-  pathGetCBTResultWithListId,
-  pathGetRuangAll,
-  pathGetSesiAll,
-  pathGetUsersAll,
+import { pathGetCBTListWithId, pathGetCBTResultWithListId, pathGetRuangAll, pathGetSesiAll, pathGetUsersAll, pathPrintKehadiran, WS_URL,
   // WS_URL,
 } from "@/service/path";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useParams } from "react-router-dom";
 import { ResultInterface } from "@/lib/interface/ResultInterface";
 import { UserInterface } from "@/lib/interface/UserInterface";
 import { SesiInterface } from "@/lib/interface/SesiInterface";
 import { RuangInterface } from "@/lib/interface/RuangInterface";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue} from "@/components/ui/select";
 import { RefreshAdmin } from "@/lib/interface/RefreshAdmin";
 import { getAuthorizeAdmin } from "@/helper/getAuthorizeAdmin";
 import { CbtInterface } from "@/lib/interface/CbtInterface";
+import { Button } from "@/components/ui/button";
+import Swal from "sweetalert2";
 
 export default function LacakCbt() {
   const { id } = useParams();
@@ -46,7 +27,7 @@ export default function LacakCbt() {
   const [sesiActive, setSesiActive] = useState<SesiInterface>();
   const [ruangActive, setRuangActive] = useState<RuangInterface>();
   const [result, setResult] = useState<ResultInterface[]>();
-  // const [socket, setSocket] = useState<WebSocket>();
+  const [socket, setSocket] = useState<WebSocket>();
   const [flashUser] = useState<RefreshAdmin | null>(getAuthorizeAdmin());
   const [detail, setDetail] = useState<CbtInterface>();
 
@@ -57,26 +38,30 @@ export default function LacakCbt() {
     })
   }, [id])
   // Menghubungkan koneksi dengan yang lain
-  // useEffect(() => {
-  //   const ws = new WebSocket(WS_URL(Number(id)));
-  //   setSocket(ws);
-  //   ws.onopen = () => {
-  //     console.log("Connected to WebSocket server");
-  //   };
-  //   ws.onclose = () => {
-  //     console.log("Connection to WebSocket server closed");
-  //   };
-  //   return () => {
-  //     ws.close();
-  //   };
-  // }, [id]);
+  useEffect(() => {
+    const ws = new WebSocket(WS_URL(Number(id)));
+    setSocket(ws);
+    ws.onopen = () => {
+      console.log("Connected to WebSocket server");
+    };
+    ws.onclose = () => {
+      console.log("Connection to WebSocket server closed");
+    };
+
+    ws.onmessage = (event : MessageEvent) => {
+      console.log(event)
+    }
+    return () => {
+      ws.close();
+    };
+  }, [id]);
 
   // mengrim pesan kepada guest
-  // const sendMessage = (message: string) => {
-  //   if (socket && message !== "") {
-  //     socket.send("proktor-" + message);
-  //   }
-  // };
+  const sendMessage = (message: string) => {
+    if (socket && message !== "") {
+      socket.send("proktor-" + message);
+    }
+  };
 
   const handleCheckStatus = (user: UserInterface) => {
     const index = result?.findIndex((Obj) => Obj.iduser == user.id);
@@ -100,17 +85,22 @@ export default function LacakCbt() {
               .then((rrr) => rrr.json())
               .then((ruangAll) => {
                 if (ruangAll.status !== 200) return;
-                setRuang(ruangAll.data);
+                if(flashUser?.jabatan !== "operator") {
+                  const ru = ruangAll.data as RuangInterface[];
+                  const oneRu = ru.filter(Obj => Obj.name.trim() == flashUser?.walikelas)
+                  setRuangActive(oneRu[0])
+                  setRuang(oneRu)
+                } else { 
+                  setRuangActive(ruangAll.data[0])
+                  setRuang(ruangAll.data);
+                }
                 const s = sesiAll.data as SesiInterface[];
-                const oneSesi = s.filter(
-                  (Obj) => Obj.name.trim() == flashUser?.walikelas
-                );
-                setSesiActive(sesiAll.data[0]);
-                setRuangActive(ruangAll.data[0]);
+               
+                setSesiActive(s[0]);
                 const h = userAll.data.filter(
                   (Obj: UserInterface) =>
-                    Obj.sesi.trim() == oneSesi[0].name.trim() &&
-                    Obj.ruang.trim() == "1"
+                    Obj.sesi.trim() == s[0].name.trim() &&
+                    Obj.ruang.trim() == flashUser?.walikelas
                 );
                 setUserSelect(h);
               });
@@ -153,6 +143,46 @@ export default function LacakCbt() {
     );
     setUserSelect(us);
   };
+  const handlePdfKehadiran = () => {
+    Swal.fire({
+      title : "Konfirmasi cetak kehadiran",
+      text : "Ketikkan Nama pengawas",
+      showCancelButton : true,
+      cancelButtonText : "Tidak Jadi",
+      confirmButtonText : "Cetak Daftar Hadir",
+      input : "text",
+      inputPlaceholder : "Nama Lengkap",
+      inputValidator : (v) => {
+        if(!v) return "Pastikan Di isi"
+      }
+    }).then(e => {
+      if(!e.isConfirmed) return;
+      if(id && sesiActive && ruangActive && flashUser) {
+        const proktor = flashUser?.name
+        window.location.replace(pathPrintKehadiran(id, sesiActive?.name.trim(), ruangActive?.name.trim(), proktor, e.value))
+      }
+    })
+  }
+  const handlePdfBeritaAcara = () => {
+    Swal.fire({
+      title : "Konfirmasi cetak kehadiran",
+      text : "Ketikkan Nama pengawas",
+      showCancelButton : true,
+      cancelButtonText : "Tidak Jadi",
+      confirmButtonText : "Cetak Daftar Hadir",
+      input : "text",
+      inputPlaceholder : "Nama Lengkap",
+      inputValidator : (v) => {
+        if(!v) return "Pastikan Di isi"
+      }
+    }).then(e => {
+      if(!e.isConfirmed) return;
+      if(id && sesiActive && ruangActive && flashUser) {
+        const proktor = flashUser?.name
+        window.location.replace(pathPrintKehadiran(id, sesiActive?.name.trim(), ruangActive?.name.trim(), proktor, e.value))
+      }
+    })
+  }
 
   return (
     <Suspense fallback="TUNGGU SEBENTAR">
@@ -174,9 +204,9 @@ export default function LacakCbt() {
                   <TableHead>Nama Lengkap</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Target</TableHead>
-                  <TableHead>Peringatan</TableHead>
+                  <TableHead>Kelas</TableHead>
                   <TableHead>Nilai Sementara</TableHead>
-                  <TableHead className="text-right">Photo</TableHead>
+                  <TableHead className="text-right">PELANGGARAN</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -195,9 +225,9 @@ export default function LacakCbt() {
                     <TableCell>{v.name}</TableCell>
                     <TableCell>{handleCheckStatus(v)} UJIAN</TableCell>
                     <TableCell>{v.photo ?? "NO"}</TableCell>
-                    <TableCell>KELUAR LAYAR</TableCell>
+                    <TableCell>{v.kelas}</TableCell>
                     <TableCell>40</TableCell>
-                    <TableCell className="text-right">{v.photo}</TableCell>
+                    <TableCell className="text-right"><Button onClick={() => sendMessage("bebas@" + v.nisn)}>Bebaskan</Button></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -246,13 +276,13 @@ export default function LacakCbt() {
                       onValueChange={(e) => handleRuang(e)}
                     >
                       <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Pilih Sesi" />
+                        <SelectValue placeholder="Pilih Ruang" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
                           <SelectLabel>Sesi</SelectLabel>
                           {ruang.map((v, k) => (
-                            <SelectItem key={k} value={v.name}>
+                            <SelectItem key={k} value={v.name.trim()}>
                               Ruang {v.name}
                             </SelectItem>
                           ))}
@@ -260,6 +290,11 @@ export default function LacakCbt() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="mt-4">
+                  <Button onClick={handlePdfKehadiran} className="mx-3">Cetak Kehadiran</Button>
+                  <Button onClick={handlePdfBeritaAcara} className="mx-3">Cetak Berita Acara</Button>
                 </div>
               </CardContent>
             </Card>

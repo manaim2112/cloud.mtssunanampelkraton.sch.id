@@ -1,5 +1,5 @@
 export const BASE_URL = "http://" + window.location.hostname + ":5002/api"
-export const WS_URL = (id:number) => "ws://" + window.location.hostname + ":5001/ws/cbt/" + id 
+export const WS_URL = (id:number) => "ws://" + window.location.hostname + ":5002/ws/cbt/" + id 
 
 export const pathInstallTable = (t:string) => BASE_URL + "/install/table_"+ t;
 export const pathInsertNewUser = BASE_URL + "/install/insert_new_user";
@@ -69,3 +69,5 @@ export const pathCountSesi = BASE_URL + "/sesi/count";
 export const pathCreateSesi = BASE_URL + "/sesi/create";
 export const pathUpdateSesi = BASE_URL + "/sesi/update";
 export const pathDeleteSesi = (id:string) => BASE_URL + "/sesi/id/" + id;
+
+export const pathPrintKehadiran = (mapelid:string, sesi:string, ruang:string, proktor:string, pengawas:string) => BASE_URL + "/pdf/kehadiran/mapel/"+ mapelid + "/sesi/" + sesi + "/ruang/" + ruang + "/?pengawas=" + btoa(pengawas)  + "&proktor=" + btoa(proktor)

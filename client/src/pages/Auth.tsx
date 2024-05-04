@@ -1,8 +1,11 @@
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 
 
 export default function Auth() {
+  useEffect(() => {
+    document.title = "Masuk Ke AM-BK"
+  }, [])
   return (
     <Suspense fallback={"Tunggu sebentar"}>
         <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">

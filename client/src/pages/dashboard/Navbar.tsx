@@ -2,17 +2,22 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { deleteAuthorizeAdmin } from "@/helper/deleteAuthorizeAdmin"
 import { getAuthorizeAdmin } from "@/helper/getAuthorizeAdmin"
 import { RefreshAdmin } from "@/lib/interface/RefreshAdmin"
 import { Home, LineChart, Package, Package2, PanelLeft, Search, ShoppingCart, Users2 } from "lucide-react"
 import { useState } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 
 export default function Navbar() {
     const path = useLocation().pathname.split("/");
     path.shift();
     const [user] = useState<RefreshAdmin|null>(getAuthorizeAdmin())
-    
+    const nav = useNavigate();
+    const handleLogout = () => {
+      deleteAuthorizeAdmin();
+      return nav("/", { replace : true});
+    }
     return(
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
           
@@ -110,7 +115,7 @@ export default function Navbar() {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleLogout()}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>

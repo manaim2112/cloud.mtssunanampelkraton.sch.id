@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strconv"
 	"time"
@@ -13,20 +14,202 @@ import (
 func RoutePdf(app *fiber.App) {
 
 	ctx := app.Group("/api/pdf")
-	ctx.Get("/kehadiran/mapel/:mapel/sesi/:sesi/ruang/:ruang", getKehadiran)
-	ctx.Get("/beritaacara/mapel/:mapel/sesi/:sesi/ruang/:ruang", getBeritaAcara)
+	ctx.Get("/kehadiran/mapel/:mapel/sesi/:sesi/ruang/:ruang/", getKehadiran)
+	ctx.Get("/beritaacara/mapel/:mapel/sesi/:sesi/ruang/:ruang/", getBeritaAcara)
 }
 
 func getBeritaAcara(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{
-		"status": "OKE",
-	})
+	// mendapatkan data mapel
+	g := c.Params("mapel")
+	sesi := c.Params("sesi")
+	ruang := c.Params("ruang")
+	pengawas := c.Query("pengawas")
+
+	decodePengawas, _ := base64.StdEncoding.DecodeString(pengawas)
+
+	u := new(CBT_listType)
+	if err := db.QueryRowContext(c.Context(), "SELECT * FROM CBT_list WHERE id=?", g).Scan(&u.Id, &u.Name, &u.Jenis, &u.Durasi, &u.Min_durasi, &u.Mulai, &u.Berakhir, &u.Acak, &u.Code, &u.Priority, &u.Tokelas, &u.Creator, &u.Created_at, &u.Updated_at); err != nil {
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	tgl, _ := tanggal.Papar(time.Now(), "Pasuruan", tanggal.WIB)
+	format := []tanggal.Format{
+		tanggal.LokasiDenganKoma,
+		tanggal.Hari,
+		tanggal.NamaBulan,
+		tanggal.Tahun,
+	}
+	ss := tgl.Format(" ", format)
+
+	// Mendapatkan pengguna dari sesi dan ruang
+	rows, err := db.Query("SELECT COUNT(*) FROM user WHERE ruang = ? AND sesi = ?", ruang, sesi)
+	if err != nil {
+		// Handle error
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	defer rows.Close()
+
+	var count int
+	for rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			// Handle error
+			return c.JSON(fiber.Map{
+				"status":  404,
+				"message": err.Error(),
+			})
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		// Handle error
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+	countStr := strconv.Itoa(count)
+
+	// Mendapatkan User yang sudah ujian
+	rowsR, err := db.Query(`
+		SELECT COUNT(*) 
+		FROM cbt_result 
+		JOIN user ON cbt_result.iduser = user.id 
+		WHERE cbt_result.idlist = ? AND user.sesi = ? AND user.ruang = ?
+	`, g, sesi, ruang)
+	if err != nil {
+		// Handle error
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	defer rowsR.Close()
+
+	var countR int
+	for rowsR.Next() {
+		if err := rowsR.Scan(&countR); err != nil {
+			// Handle error
+			return c.JSON(fiber.Map{
+				"status":  404,
+				"message": err.Error(),
+			})
+		}
+	}
+
+	if err := rowsR.Err(); err != nil {
+		// Handle error
+		return c.JSON(fiber.Map{
+			"status":  404,
+			"message": err.Error(),
+		})
+	}
+
+	strCountR := strconv.Itoa(countR)
+	countNotStr := strconv.Itoa(count - countR)
+
+	// Membuat objek PDF baru
+	pdf := fpdf.New("P", "mm", "A4", "")
+
+	// Menambahkan halaman baru
+	pdf.AddPage()
+
+	// Menambahkan header
+	pdf.SetFont("Arial", "B", 12)
+	pdf.CellFormat(190.0, 10, "BERITA ACARA", "0", 0, "C", false, 0, "")
+	pdf.Ln(5)
+	pdf.CellFormat(190.0, 10, "PELAKSANAAN ASESMEN MADRASAH - BERBASIS KOMPUTER (AM-BK)", "0", 0, "C", false, 0, "")
+	pdf.Ln(5)
+	pdf.SetFont("Arial", "B", 12)
+	pdf.CellFormat(190.0, 10, "TAHUN PELAJARAN 2023/2024", "0", 0, "C", false, 0, "")
+	pdf.Ln(10)
+
+	// Menambahkan header
+	pdf.SetFont("Arial", "", 12)
+
+	// Membuat tabel user
+	// Menentukan lebar kolom dan ratakan ke kiri
+	// colWidths := []float64{10.0, 40.0, 70.0, 20.0, 50.0}
+
+	pdf.MultiCell(190.0, 10.0, fmt.Sprintf(`
+    Pada hari ini %s tanggal %d bulan %s tahun %d, telah diselenggarakan Asesmen Madrasah - Berbasis Komputer (AM-BK) untuk Mata Pelajaran %s dari pukul ....... sampai dengan pukul .......
+`, tgl.NamaHari, tgl.Hari, tgl.NamaBulan, tgl.Tahun, *u.Name), "", "L", false)
+
+	// Mencetak label dan nilai dengan format yang diinginkan
+	pdf.CellFormat(65.0, 10.0, "1. Madrasah Penyelenggara", "0", 0, "", false, 0, "")
+	pdf.CellFormat(40.0, 10.0, ": MTs Sunan Ampel Kraton Pasuruan", "0", 0, "", false, 0, "")
+	pdf.Ln(-1) // Pindah ke baris baru
+	pdf.CellFormat(5.0, 10.0, "", "0", 0, "", false, 0, "")
+	pdf.CellFormat(60.0, 10.0, "Alamat", "0", 0, "", false, 0, "")
+	pdf.MultiCell(100.0, 10.0, ": JL. Sepat No.70 bangil Pasuruan", "", "L", false)
+	pdf.Ln(-1)
+	pdf.CellFormat(5.0, 10.0, "", "0", 0, "", false, 0, "")
+	pdf.CellFormat(60.0, 10.0, "Ruang", "0", 0, "", false, 0, "")
+	pdf.CellFormat(40.0, 10.0, ": "+ruang, "0", 0, "", false, 0, "")
+	pdf.CellFormat(35.0, 10.0, "Sesi", "0", 0, "", false, 0, "")
+	pdf.CellFormat(40.0, 10.0, ": "+sesi, "0", 0, "", false, 0, "")
+	pdf.Ln(-1)
+	pdf.CellFormat(5.0, 10.0, "", "0", 0, "", false, 0, "")
+	pdf.CellFormat(60.0, 10.0, "Jumlah peserta seharusnya", "0", 0, "", false, 0, "")
+	pdf.CellFormat(40.0, 10.0, ":  "+countStr+" orang", "0", 0, "", false, 0, "")
+	pdf.Ln(-1)
+	pdf.CellFormat(5.0, 10.0, "", "0", 0, "", false, 0, "")
+	pdf.CellFormat(60.0, 10.0, "Jumlah hadir (ikut ujian)", "0", 0, "", false, 0, "")
+	pdf.CellFormat(40.0, 10.0, ": "+strCountR+" orang", "0", 0, "", false, 0, "")
+	pdf.Ln(-1)
+	pdf.CellFormat(5.0, 10.0, "", "0", 0, "", false, 0, "")
+	pdf.CellFormat(60.0, 10.0, "Jumlah tidak hadir", "0", 0, "", false, 0, "")
+	pdf.CellFormat(40.0, 10.0, ": "+countNotStr+" orang", "0", 0, "", false, 0, "")
+	pdf.Ln(-1)
+	pdf.CellFormat(65.0, 10.0, "2. Catatan selama pelaksanaan ujian :", "0", 0, "", false, 0, "")
+	pdf.Ln(-1)
+	pdf.CellFormat(5.0, 10.0, "", "0", 0, "", false, 0, "")
+	pdf.MultiCell(185.0, 10.0, "..............................................................................................................................................................................................................................................................................", "", "L", false)
+	pdf.CellFormat(5.0, 10.0, "", "0", 0, "", false, 0, "")
+	pdf.MultiCell(185.0, 10.0, "Berita Acara Ini dibuat dengan sesungguhnya untuk dapat dipertanggung jawabkan sebagai mestinya. yang membuat berita acara :", "", "L", false)
+	pdf.Ln(10)
+
+	// Menambahkan tanda tangan
+	// Menambahkan tanda tangan di kiri
+	pdf.CellFormat(50.0, 10.0, "", "0", 0, "C", false, 0, "")
+	pdf.CellFormat(90.0, 10.0, "", "0", 0, "L", false, 0, "")
+	pdf.CellFormat(50.0, 10.0, ss, "0", 0, "L", false, 0, "")
+	pdf.Ln(5)
+	pdf.CellFormat(50.0, 10.0, "", "0", 0, "C", false, 0, "")
+	pdf.CellFormat(90.0, 10.0, "", "0", 0, "L", false, 0, "")
+	pdf.CellFormat(50.0, 10.0, "Pengawas Ruang", "0", 0, "L", false, 0, "")
+	pdf.Ln(30)
+	pdf.CellFormat(50.0, 10.0, "", "0", 0, "C", false, 0, "")
+	pdf.CellFormat(90.0, 10.0, "", "0", 0, "L", false, 0, "")
+	pdf.CellFormat(50.0, 10.0, string(decodePengawas), "B", 0, "L", false, 0, "")
+	// Mengirimkan PDF ke client sebagai tanggapan HTTP
+	c.Set("Content-Type", "application/pdf")
+	err1 := pdf.Output(c.Response().BodyWriter())
+	if err1 != nil {
+		fmt.Println("Error generating PDF:", err)
+		return err
+	}
+
+	return nil
 }
 func getKehadiran(c *fiber.Ctx) error {
 	// mendapatkan data mapel
 	g := c.Params("mapel")
 	sesi := c.Params("sesi")
 	ruang := c.Params("ruang")
+	pengawas := c.Query("pengawas")
+	proktor := c.Query("proktor")
+
+	decodePengawas, _ := base64.StdEncoding.DecodeString(pengawas)
+	decodeProktor, _ := base64.StdEncoding.DecodeString(proktor)
+
 	u := new(CBT_listType)
 	if err := db.QueryRowContext(c.Context(), "SELECT * FROM CBT_list WHERE id=?", g).Scan(&u.Id, &u.Name, &u.Jenis, &u.Durasi, &u.Min_durasi, &u.Mulai, &u.Berakhir, &u.Acak, &u.Code, &u.Priority, &u.Tokelas, &u.Creator, &u.Created_at, &u.Updated_at); err != nil {
 		return c.JSON(fiber.Map{
@@ -66,10 +249,12 @@ func getKehadiran(c *fiber.Ctx) error {
 
 	// Menambahkan header
 	pdf.SetFont("Arial", "B", 16)
-	pdf.Cell(40, 10, "Asesmen Madrasah Berbasis Komputer (AM-BK)")
+	pdf.CellFormat(190.0, 10, "Asesmen Madrasah Berbasis Komputer", "0", 0, "C", false, 0, "")
+	pdf.Ln(5)
+	pdf.CellFormat(190.0, 10, "(AM-BK)", "0", 0, "C", false, 0, "")
 	pdf.Ln(5)
 	pdf.SetFont("Arial", "B", 12)
-	pdf.Cell(40, 10, "Tahun Pelajaran 2024/2025")
+	pdf.CellFormat(190.0, 10, "Tahun Pelajaran 2024/2025", "0", 0, "C", false, 0, "")
 	pdf.Ln(5)
 
 	// Menambahkan header
@@ -95,15 +280,15 @@ func getKehadiran(c *fiber.Ctx) error {
 	// Menentukan lebar kolom dan ratakan ke kiri
 	colWidths := []float64{10.0, 40.0, 70.0, 20.0, 50.0}
 
-	pdf.CellFormat(50.0, 10.0, "Satuan Pendidikan", "0", 0, "L", false, 0, "")
-	pdf.CellFormat(70.0, 10.0, ": MTs Sunan Ampel Kraton", "0", 0, "L", false, 0, "")
-	pdf.CellFormat(20.0, 10.0, "Sesi ", "0", 0, "L", false, 0, "")
-	pdf.CellFormat(50.0, 10.0, ": "+sesi, "0", 0, "L", false, 0, "")
+	pdf.CellFormat(50.0, 13.0, "Satuan Pendidikan", "0", 0, "L", false, 0, "")
+	pdf.CellFormat(70.0, 13.0, ": MTs Sunan Ampel Kraton", "0", 0, "L", false, 0, "")
+	pdf.CellFormat(20.0, 13.0, "Sesi ", "0", 0, "L", false, 0, "")
+	pdf.CellFormat(50.0, 13.0, ": "+sesi, "0", 0, "L", false, 0, "")
 	pdf.Ln(5)
-	pdf.CellFormat(50.0, 10.0, "Mata Ujian ", "0", 0, "L", false, 0, "")
-	pdf.CellFormat(70.0, 10.0, ": "+*u.Name, "0", 0, "L", false, 0, "")
-	pdf.CellFormat(20.0, 10.0, "Ruang", "0", 0, "L", false, 0, "")
-	pdf.CellFormat(50.0, 10.0, ": "+ruang, "0", 0, "L", false, 0, "")
+	pdf.CellFormat(50.0, 13.0, "Mata Ujian ", "0", 0, "L", false, 0, "")
+	pdf.CellFormat(70.0, 13.0, ": "+*u.Name, "0", 0, "L", false, 0, "")
+	pdf.CellFormat(20.0, 13.0, "Ruang", "0", 0, "L", false, 0, "")
+	pdf.CellFormat(50.0, 13.0, ": "+ruang, "0", 0, "L", false, 0, "")
 	pdf.Ln(-1)
 
 	// Menambahkan header tabel
@@ -144,9 +329,10 @@ func getKehadiran(c *fiber.Ctx) error {
 	pdf.CellFormat(90.0, 10.0, "", "0", 0, "L", false, 0, "")
 	pdf.CellFormat(50.0, 10.0, "Proktor", "0", 0, "C", false, 0, "")
 	pdf.Ln(30)
-	pdf.CellFormat(50.0, 10.0, "____________________", "0", 0, "C", false, 0, "")
+
+	pdf.CellFormat(50.0, 10.0, string(decodePengawas), "B", 0, "C", false, 0, "")
 	pdf.CellFormat(90.0, 10.0, "", "0", 0, "L", false, 0, "")
-	pdf.CellFormat(50.0, 10.0, "____________________", "0", 0, "C", false, 0, "")
+	pdf.CellFormat(50.0, 10.0, string(decodeProktor), "B", 0, "C", false, 0, "")
 	// Mengirimkan PDF ke client sebagai tanggapan HTTP
 	c.Set("Content-Type", "application/pdf")
 	err1 := pdf.Output(c.Response().BodyWriter())

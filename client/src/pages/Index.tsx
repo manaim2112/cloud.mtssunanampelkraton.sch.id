@@ -6,6 +6,7 @@ export default function Index() {
     const [progress, setProgress] = useState(0)
     const nav = useNavigate()
     useEffect(() => {
+        document.title = "Selamat Datang"
         setTimeout(() => {
             const p = progress+10;
             if(progress < 100) {

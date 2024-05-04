@@ -11,16 +11,50 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { ReactNode, startTransition, Suspense, useEffect, useState } from "react";
 import Navbar from "./Navbar";
-import { pathCBTListAll, pathCountCBTList, pathCountUsers } from "@/service/path";
+import { pathCBTListAll, pathCountCBTList, pathCountUsers, pathInsertCBTList } from "@/service/path";
 import { CbtInterface } from "@/lib/interface/CbtInterface";
 import { getAuthorizeAdmin } from "@/helper/getAuthorizeAdmin";
 import { RefreshAdmin } from "@/lib/interface/RefreshAdmin";
+import Swal from "sweetalert2";
+import { randomText } from "@/helper/randomText";
 
 export function ListCountContent() {
   const [count, setCount] = useState({
     cbt: 0,
     user: 0,
   });
+  const nav = useNavigate();
+
+  const handleCreateUjian = () => {
+    Swal.fire({
+      "title" : "Ketikkan Nama Ujian",
+      "confirmButtonText" : "Buat Ujian",
+      "input" : "text",
+      "inputAutoTrim" : true,
+      "inputValidator" : (v) => {
+        if(!v) return "Pastikan di isi";
+      }
+    }).then(e => {
+      if(!e.isConfirmed) return;
+      fetch(pathInsertCBTList, {
+        method : "POST",
+        headers : { "Content-Type": "application/json"},
+        body : JSON.stringify({
+          "name" : e.value.trim(),
+          "jenis" : "AMBK",
+          "durasi" : "50",
+          "min_durasi" : "50",
+          "code" : randomText(3),
+          "tokelas" : "9A, 9B, 9C, 9D, 9E, 9F, 9G",
+          "creator" : 1
+        })
+      }).then(r=>r.json()).then(response => {
+        if(response.status === 201) {
+          nav("/dashboard", {replace : true})
+        }
+      })
+    })
+  }
 
   const [user] = useState<RefreshAdmin|null>(getAuthorizeAdmin())
 
@@ -60,7 +94,7 @@ export function ListCountContent() {
           <CardFooter>
             {
               user?.jabatan == "operator" && (
-                <Button>Buat Ujian Baru</Button>
+                <Button onClick={() => handleCreateUjian()}>Buat Ujian Baru</Button>
               )
             }
           </CardFooter>
@@ -227,22 +261,23 @@ export function TabsMapel(prop: { mapel: CbtInterface[] }) {
 export const DetailActive = (props: { mapel: CbtInterface[] }) => {
   const { mapel } = props;
   const [selection, setSelection] = useState<CbtInterface>();
-  const [keySelect, setKeySelect] = useState<number>();
+  const [keySelect, setKeySelect] = useState<number>(0);
+  const nav = useNavigate();
 
   useEffect(() => {
     if(mapel.length > 0) {
-      setSelection(mapel[0])
-      setKeySelect(0);
+      setSelection(mapel[keySelect])
     }
-  }, [mapel])
+  }, [mapel, keySelect])
 
   const handle = (key:number) => {
-    if(keySelect) {
-      const count = keySelect+key;
-      if(mapel[count]) {
-        setKeySelect(count);
-        setSelection(mapel[key])
-      }
+    const selected = keySelect+key;
+    if(mapel[selected]) {
+      setKeySelect(selected);
+    } else if(selected < 0) {
+      setKeySelect(mapel.length-1)
+    } else {
+      setKeySelect(0);
     }
   }
   return (
@@ -258,10 +293,10 @@ export const DetailActive = (props: { mapel: CbtInterface[] }) => {
                 <CardDescription>Date: {selection?.mulai}</CardDescription>
               </div>
               <div className="ml-auto flex items-center gap-1">
-                <Button size="sm" variant="outline" className="h-8 gap-1">
+                <Button onClick={() => nav("/dashboard/cbt/id/" + selection?.id)} size="sm" variant="outline" className="h-8 gap-1">
                   <Truck className="h-3.5 w-3.5" />
                   <span className="lg:sr-only xl:not-sr-only xl:whitespace-nowrap">
-                    Track Order
+                    LACAK PEKERJAAN PESERTA
                   </span>
                 </Button>
                 <DropdownMenu>
@@ -273,9 +308,9 @@ export const DetailActive = (props: { mapel: CbtInterface[] }) => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>Edit</DropdownMenuItem>
-                    <DropdownMenuItem>Export</DropdownMenuItem>
+                    <DropdownMenuItem>Download</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>Trash</DropdownMenuItem>
+                    <DropdownMenuItem>Hapus</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -285,7 +320,7 @@ export const DetailActive = (props: { mapel: CbtInterface[] }) => {
             </CardContent>
             <CardFooter className="flex flex-row items-center border-t bg-muted/50 px-6 py-3">
               <div className="text-xs text-muted-foreground">
-                Updated <time dateTime="2023-11-23">November 23, 2023</time>
+                Updated <time dateTime="2023-11-23">{ selection ? atob(selection?.created_at) : ""}</time>
               </div>
               <Pagination className="ml-auto mr-0 w-auto">
                 <PaginationContent>
@@ -348,11 +383,11 @@ export default function Dashboard() {
           <Navbar />
         </Suspense>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
-          <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
+          <div className="grid order-2 lg:order-1 auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
             <ListCountContent />
             <TabsMapel mapel={mapel} />
           </div>
-          <div>
+          <div className="order-1 lg:order-2">
             <DetailActive mapel={mapel.filter((Obj) => Obj.priority == true)} />
           </div>
         </main>
