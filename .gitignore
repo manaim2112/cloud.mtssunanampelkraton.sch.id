@@ -2,6 +2,5 @@
 uploads/image/*
 uploads/photo_book/*
 photo_user/*
-client/
 go.mod
 go.sum
