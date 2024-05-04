@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -65,6 +66,7 @@ func main() {
 
 	config.UseApp(app)
 
+	fmt.Print("TEST")
 	godotenv.Load(".env")
 
 	db, err := config.Connection()

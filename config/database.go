@@ -29,6 +29,8 @@ func Connection() (*sql.DB, error) {
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbDatabase := os.Getenv("DB_DATABASE")
 
+	fmt.Printf("%s - %s - %s - %s - %s\n", dbHost, dbPort, dbDatabase, dbPassword, dbUsername)
+
 	if dbHost == "" || dbPort == "" || dbUsername == "" || dbDatabase == "" {
 		return nil, fmt.Errorf("belum Di set database anda")
 	}
