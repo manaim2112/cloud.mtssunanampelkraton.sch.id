@@ -187,7 +187,7 @@ export const CBTTest = () => {
   
           // Hapus warna hijau dari semua opsi kecuali yang saat ini dipilih
           const allOptions = document.querySelectorAll(
-            ".option-" + key + " .badge"
+            ".option-" + i + " .badge"
           );
           allOptions.forEach((option) => {
             option.classList.remove("bg-green-300");
