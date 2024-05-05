@@ -28,7 +28,7 @@ func getBeritaAcara(c *fiber.Ctx) error {
 	decodePengawas, _ := base64.StdEncoding.DecodeString(pengawas)
 
 	u := new(CBT_listType)
-	if err := db.QueryRowContext(c.Context(), "SELECT * FROM CBT_list WHERE id=?", g).Scan(&u.Id, &u.Name, &u.Jenis, &u.Durasi, &u.Min_durasi, &u.Mulai, &u.Berakhir, &u.Acak, &u.Code, &u.Priority, &u.Tokelas, &u.Creator, &u.Created_at, &u.Updated_at); err != nil {
+	if err := db.QueryRowContext(c.Context(), "SELECT * FROM cbt_list WHERE id=?", g).Scan(&u.Id, &u.Name, &u.Jenis, &u.Durasi, &u.Min_durasi, &u.Mulai, &u.Berakhir, &u.Acak, &u.Code, &u.Priority, &u.Tokelas, &u.Creator, &u.Created_at, &u.Updated_at); err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
 			"message": err.Error(),
@@ -211,7 +211,7 @@ func getKehadiran(c *fiber.Ctx) error {
 	decodeProktor, _ := base64.StdEncoding.DecodeString(proktor)
 
 	u := new(CBT_listType)
-	if err := db.QueryRowContext(c.Context(), "SELECT * FROM CBT_list WHERE id=?", g).Scan(&u.Id, &u.Name, &u.Jenis, &u.Durasi, &u.Min_durasi, &u.Mulai, &u.Berakhir, &u.Acak, &u.Code, &u.Priority, &u.Tokelas, &u.Creator, &u.Created_at, &u.Updated_at); err != nil {
+	if err := db.QueryRowContext(c.Context(), "SELECT * FROM cbt_list WHERE id=?", g).Scan(&u.Id, &u.Name, &u.Jenis, &u.Durasi, &u.Min_durasi, &u.Mulai, &u.Berakhir, &u.Acak, &u.Code, &u.Priority, &u.Tokelas, &u.Creator, &u.Created_at, &u.Updated_at); err != nil {
 		return c.JSON(fiber.Map{
 			"status":  404,
 			"message": err.Error(),

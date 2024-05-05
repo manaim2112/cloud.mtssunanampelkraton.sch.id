@@ -16,6 +16,7 @@ import Dashboard from './pages/dashboard/Index.tsx'
 import Cbt from './pages/dashboard/Cbt.tsx'
 import LacakCbt from './pages/dashboard/LacakCbt.tsx'
 import Login from './pages/Login.tsx'
+import { Analisis } from './pages/guest/Analisis.tsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -33,7 +34,7 @@ const router = createBrowserRouter(
 
       <Route path="guest/:id" element={<IndexGuest/>}/>
       <Route path="guest/:id/cbt/:cbtid" element={<CBTTest/>}/>
-      <Route path="guest/:id/cbt/:cbtid/result" element={<CBTTest/>}/>
+      <Route path="guest/:id/cbt/:cbtid/analisis" element={<Analisis/>}/>
 
     </Route>
   )
