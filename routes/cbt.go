@@ -627,8 +627,8 @@ func getCBT_resultTimeWithListIdAndUserId(c *fiber.Ctx) error {
 	userid := c.Params("userid")
 	row := db.QueryRowContext(c.Context(), "SELECT created_at FROM cbt_result WHERE idlist =? AND iduser=? LIMIT 1", listid, userid)
 
-	var createdAt time.Time // Menggunakan time.Time langsung
-	err := row.Scan(&createdAt)
+	var createdAtStr string // Menggunakan string untuk menyimpan nilai datetime sebagai string
+	err := row.Scan(&createdAtStr)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -636,6 +636,14 @@ func getCBT_resultTimeWithListIdAndUserId(c *fiber.Ctx) error {
 				"message": "Data not found",
 			})
 		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  500,
+			"message": err.Error(),
+		})
+	}
+
+	createdAt, err := time.Parse("2006-01-02 15:04:05", createdAtStr) // Parsing string ke time.Time
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  500,
 			"message": err.Error(),
