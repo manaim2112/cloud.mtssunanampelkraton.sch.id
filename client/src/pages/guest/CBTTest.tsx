@@ -22,6 +22,7 @@ export const CBTTest = () => {
     const [user, setUser] = useState<RefreshToken>();
     const [cbt, setCbt] = useState<CbtInterface>();
     const [time, setTime] = useState<number>(0);
+    const [alpha] = useState<Array<string>>("ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""));
     const nav = useNavigate();
     // const [socket, setSocket] = useState<WebSocket>();
     // useEffect(() => {
@@ -54,14 +55,23 @@ export const CBTTest = () => {
       const [soalOffline, polaOffline] = getSoalOffline(String(id), String(cbtid))
       console.log(soalOffline)
       let error = 0;
+      const numberI:number[] = [];
       if(!polaOffline) return;
-      polaOffline.forEach(v => {
+      polaOffline.forEach((v,k) => {
         if(v[1] === null) {
+          numberI.push(k)
           error++;
         }
       })
 
-      if(error > 0) return Swal.fire("Pastikan semua Di kerjakan");
+      if(error > 0) return Swal.fire({
+        title : "PASTIKAN SEMUA DI KERJAKAN",
+        text : "INI beberapa Nomer yang belum dikerjakan",
+        html : "INI beberapa Nomer yang belum dikerjakan <br>" + numberI.join(", "),
+        showConfirmButton : false,
+        position : "bottom"
+      })
+
 
       const data:ResultInterface = {
         id : 0,
@@ -224,7 +234,7 @@ export const CBTTest = () => {
                 </CardHeader>
                 <CardContent>
                   <div dangerouslySetInnerHTML={{ __html: v.question }} />
-                  <div className={"option-" + k}>
+                  <div className={"mt-3 option-" + k}>
                     {v.tipe == "pilgan" && (
                       <>
                         {(typeof v.options === 'object') && v.options.map((vv: string, kk: number) => (
@@ -232,10 +242,10 @@ export const CBTTest = () => {
                             key={kk}
                             onClick={(event) => handleSoal(v.id, kk, event)}
                             variant={"outline"}
-                            className={`text-md m-1 cursor-pointer badge ${
+                            className={`text-md m-1 w-full cursor-pointer badge p-2 ${
                               pola[k][1] == kk ? "bg-green-300" : ""
                             }`}
-                            dangerouslySetInnerHTML={{ __html: vv }}
+                            dangerouslySetInnerHTML={{ __html: alpha[kk] + ". " + vv }}
                           ></Badge>
                         ))}
                         {(typeof v.options === 'string') && JSON.parse(v.options).map((vv: string, kk: number) => (
@@ -243,10 +253,10 @@ export const CBTTest = () => {
                             key={kk}
                             onClick={(event) => handleSoal(v.id, kk, event)}
                             variant={"outline"}
-                            className={`text-md m-1 cursor-pointer badge ${
+                            className={`text-md m-1 cursor-pointer badge p-2 ${
                               pola[k][1] == kk ? "bg-green-300" : ""
                             }`}
-                            dangerouslySetInnerHTML={{ __html: vv }}
+                            dangerouslySetInnerHTML={{ __html: alpha[kk] + ". " + vv }}
                           ></Badge>
                         ))}
                       </>

@@ -17,7 +17,7 @@ import { getAuthorizeAdmin } from "@/helper/getAuthorizeAdmin";
 import { CbtInterface } from "@/lib/interface/CbtInterface";
 import { Button } from "@/components/ui/button";
 import Swal from "sweetalert2";
-import { SoalInterface } from "@/lib/interface/SoalInterface";
+// import { SoalInterface } from "@/lib/interface/SoalInterface";
 
 export default function LacakCbt() {
   const { id } = useParams();
@@ -28,7 +28,7 @@ export default function LacakCbt() {
   const [sesiActive, setSesiActive] = useState<SesiInterface>();
   const [ruangActive, setRuangActive] = useState<RuangInterface>();
   const [result, setResult] = useState<ResultInterface[]>();
-  const [soal, setSoal] = useState<SoalInterface[]>();
+  // const [soal, setSoal] = useState<SoalInterface[]>();
   // const [socket, setSocket] = useState<WebSocket>();
   const [flashUser] = useState<RefreshAdmin | null>(getAuthorizeAdmin());
   const [detail, setDetail] = useState<CbtInterface>();
@@ -77,7 +77,7 @@ export default function LacakCbt() {
     fetch(pathGetSoalWithIdList(Number(id))).then(r => r.json()).then(r => {
       if(r.status !== 200) return;
 
-      setSoal(r.data);
+      // setSoal(r.data);
     })
   })
 
