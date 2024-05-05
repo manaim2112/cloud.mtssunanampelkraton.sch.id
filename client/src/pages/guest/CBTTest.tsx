@@ -112,12 +112,13 @@ export const CBTTest = () => {
               const timestampWithoutZ = created_at;
               
               const dateNow = Date.parse(current_time);
-              const dateStart = Date.parse(timestampWithoutZ);
+              const dateStart = Date.parse(timestampWithoutZ) - 7*60*60*1000;
               if (!list.durasi) return;
               const selisih = dateNow - dateStart;
               const timeSoal = Number(r.data.durasi)*60*1000;
 
               const difftotal = timeSoal - selisih;
+              console.log(pathCheckingResultTime(y.id, Number(cbtid)));
               // JIka waktu habis maka langsung di hentikan
               if(difftotal < 0) {
                 const [soalOffline, polaOffline] = getSoalOffline(String(id), String(cbtid))

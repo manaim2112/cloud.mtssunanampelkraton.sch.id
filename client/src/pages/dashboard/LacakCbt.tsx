@@ -1,7 +1,7 @@
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { Suspense, useEffect, useState } from "react";
-import { pathGetCBTListWithId, pathGetCBTResultWithListId, pathGetRuangAll, pathGetSesiAll, pathGetUsersAll, pathPrintKehadiran
+import { pathGetCBTListWithId, pathGetCBTResultWithListId, pathGetRuangAll, pathGetSesiAll, pathGetSoalWithIdList, pathGetUsersAll, pathPrintKehadiran
   // WS_URL,
 } from "@/service/path";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,6 +17,7 @@ import { getAuthorizeAdmin } from "@/helper/getAuthorizeAdmin";
 import { CbtInterface } from "@/lib/interface/CbtInterface";
 import { Button } from "@/components/ui/button";
 import Swal from "sweetalert2";
+import { SoalInterface } from "@/lib/interface/SoalInterface";
 
 export default function LacakCbt() {
   const { id } = useParams();
@@ -27,6 +28,7 @@ export default function LacakCbt() {
   const [sesiActive, setSesiActive] = useState<SesiInterface>();
   const [ruangActive, setRuangActive] = useState<RuangInterface>();
   const [result, setResult] = useState<ResultInterface[]>();
+  const [soal, setSoal] = useState<SoalInterface[]>();
   // const [socket, setSocket] = useState<WebSocket>();
   const [flashUser] = useState<RefreshAdmin | null>(getAuthorizeAdmin());
   const [detail, setDetail] = useState<CbtInterface>();
@@ -72,6 +74,14 @@ export default function LacakCbt() {
   };
 
   useEffect(() => {
+    fetch(pathGetSoalWithIdList(Number(id))).then(r => r.json()).then(r => {
+      if(r.status !== 200) return;
+
+      setSoal(r.data);
+    })
+  })
+
+  useEffect(() => {
     fetch(pathGetUsersAll)
       .then((r) => r.json())
       .then((userAll) => {
@@ -107,7 +117,28 @@ export default function LacakCbt() {
               });
           });
       });
+
   }, [flashUser]);
+
+  // const calculateNilai = (iduser) => {
+  //   if(!result) return 0;
+  //   const findIndexresultId = result?.findIndex(Obj => Obj.iduser == iduser);
+  //   if(findIndexresultId == -1) return 0;
+
+  //   const resultY = result[findIndexresultId];
+
+  //   const data = JSON.parse(resultY.answer) as (number|null)[][];
+  //   let poin = 0;
+  //   const sortData = data.sort((a,b) => {
+  //     if(a[0] && b[0]) {
+  //       return a[0] - b[0];
+  //     }
+  //   });
+
+  //   sortData.forEach((v) => {
+      
+  //   })
+  // }
 
   useEffect(() => {
     fetch(pathGetCBTResultWithListId(Number(id)))
