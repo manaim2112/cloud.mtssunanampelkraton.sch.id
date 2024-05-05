@@ -114,8 +114,10 @@ export const CBTTest = () => {
               const dateNow = Date.parse(current_time);
               const dateStart = Date.parse(timestampWithoutZ);
               if (!list.durasi) return;
-              const total = dateStart + Number(r.data.durasi) * 60*1000;
-              const difftotal = total-dateNow;
+              const selisih = dateNow - dateStart;
+              const timeSoal = Number(r.data.durasi)*60*1000;
+
+              const difftotal = timeSoal - selisih;
               // JIka waktu habis maka langsung di hentikan
               if(difftotal < 0) {
                 const [soalOffline, polaOffline] = getSoalOffline(String(id), String(cbtid))
