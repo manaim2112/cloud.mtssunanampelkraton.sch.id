@@ -82,6 +82,12 @@ func main() {
 
 	go runHub()
 
+	app.Get("", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"OK": true,
+		})
+	})
+
 	app.Get("/ws/cbt/:id", websocket.New(func(c *websocket.Conn) {
 		// When the function returns, unregister the client and close the connection
 		defer func() {
@@ -155,5 +161,5 @@ func main() {
 		// })
 	}
 
-	app.Listen(":5002")
+	app.Listen(":5001")
 }
