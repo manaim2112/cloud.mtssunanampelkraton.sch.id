@@ -56,7 +56,7 @@ export const CBTTest = () => {
       let error = 0;
       if(!polaOffline) return;
       polaOffline.forEach(v => {
-        if(!v[1]) {
+        if(v[1] === null) {
           error++;
         }
       })
@@ -109,7 +109,6 @@ export const CBTTest = () => {
             .then((rchecking) => {
               if (rchecking.status !== 200) return;
               const { current_time, created_at } = rchecking;
-              console.log(rchecking);
               const timestampWithoutZ = created_at;
               
               const dateNow = Date.parse(current_time);
@@ -119,7 +118,6 @@ export const CBTTest = () => {
               const timeSoal = Number(r.data.durasi)*60*1000;
 
               const difftotal = timeSoal - selisih;
-              console.log(difftotal);
               // JIka waktu habis maka langsung di hentikan
               if(difftotal < 0) {
                 const [soalOffline, polaOffline] = getSoalOffline(String(id), String(cbtid))
