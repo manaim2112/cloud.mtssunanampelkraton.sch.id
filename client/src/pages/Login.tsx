@@ -77,7 +77,7 @@ export default function AuthUser() {
                     <AlertDescription>Periksa Kembali data anda, pastikan semua benar</AlertDescription>
                 </Alert>
             )}
-            <div className="grid gap-4">
+            <div className="grid gap-4 px-6">
                 <div className="grid gap-2 text-start">
                 <Label htmlFor="email">NISN/ID</Label>
                 <Input
@@ -91,12 +91,12 @@ export default function AuthUser() {
                 </div>
                 <div className="grid gap-2">
                     <div className="flex items-center">
-                        <Label htmlFor="password">Sandi</Label>
-                        <Link
-                        to="/forgot-password"
+                        <Label htmlFor="password">KODE LOGIN</Label>
+                        <Link onClick={() => alert("Kode login Adalah Kode untuk masuk yang sudah tertera pada kartu peserta ujian AM-BK")}
+                        to="#"
                         className="ml-auto inline-block text-sm underline"
                         >
-                        Forgot your password?
+                        Bingung Kode Login?
                         </Link>
                     </div>
                     <Input id="password" onInput={handleForm} name="password" type="password" required />

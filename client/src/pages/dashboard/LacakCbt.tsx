@@ -1,7 +1,7 @@
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { Suspense, useEffect, useState } from "react";
-import { pathGetCBTListWithId, pathGetCBTResultWithListId, pathGetRuangAll, pathGetSesiAll, pathGetSoalWithIdList, pathGetUsersAll, pathPrintKehadiran
+import { pathGetCBTListWithId, pathGetCBTResultWithListId, pathGetRuangAll, pathGetSesiAll, pathGetSoalWithIdList, pathGetUsersAll, pathPrintKehadiran, pathRemoveResultWithId
   // WS_URL,
 } from "@/service/path";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,6 +17,7 @@ import { getAuthorizeAdmin } from "@/helper/getAuthorizeAdmin";
 import { CbtInterface } from "@/lib/interface/CbtInterface";
 import { Button } from "@/components/ui/button";
 import Swal from "sweetalert2";
+import { SoalInterface } from "@/lib/interface/SoalInterface";
 // import { SoalInterface } from "@/lib/interface/SoalInterface";
 
 export default function LacakCbt() {
@@ -28,15 +29,23 @@ export default function LacakCbt() {
   const [sesiActive, setSesiActive] = useState<SesiInterface>();
   const [ruangActive, setRuangActive] = useState<RuangInterface>();
   const [result, setResult] = useState<ResultInterface[]>();
-  // const [soal, setSoal] = useState<SoalInterface[]>();
+  const [soal, setSoal] = useState<SoalInterface[]>();
   // const [socket, setSocket] = useState<WebSocket>();
   const [flashUser] = useState<RefreshAdmin | null>(getAuthorizeAdmin());
   const [detail, setDetail] = useState<CbtInterface>();
+  const [alpha] = useState<string[]>("abcdefghijklmnopqrstuvwxyz".split(""));
 
   useEffect(() => {
     fetch(pathGetCBTListWithId(Number(id))).then(r => r.json()).then(res => {
       if(res.status !== 200) return;
       setDetail(res.data);
+    })
+  }, [id])
+
+  useEffect(() => {
+    fetch(pathGetSoalWithIdList(Number(id))).then(r => r.json()).then(rs => {
+      if(rs.status !== 200) return;
+      setSoal(rs.data);
     })
   }, [id])
   // Menghubungkan koneksi dengan yang lain
@@ -59,12 +68,12 @@ export default function LacakCbt() {
   // }, [id]);
 
   // // mengrim pesan kepada guest
-  const sendMessage = (message: string) => {
-    console.log(message);
-    // if (socket && message !== "") {
-    //   socket.send("proktor-" + message);
-    // }
-  };
+  // const sendMessage = (message: string) => {
+  //   console.log(message);
+  //   // if (socket && message !== "") {
+  //   //   socket.send("proktor-" + message);
+  //   // }
+  // };
 
   const handleCheckStatus = (user: UserInterface) => {
     const index = result?.findIndex((Obj) => Obj.iduser == user.id);
@@ -73,13 +82,8 @@ export default function LacakCbt() {
     return process;
   };
 
-  useEffect(() => {
-    fetch(pathGetSoalWithIdList(Number(id))).then(r => r.json()).then(r => {
-      if(r.status !== 200) return;
 
-      // setSoal(r.data);
-    })
-  })
+
 
   useEffect(() => {
     fetch(pathGetUsersAll)
@@ -120,25 +124,41 @@ export default function LacakCbt() {
 
   }, [flashUser]);
 
-  // const calculateNilai = (iduser) => {
-  //   if(!result) return 0;
-  //   const findIndexresultId = result?.findIndex(Obj => Obj.iduser == iduser);
-  //   if(findIndexresultId == -1) return 0;
+  const calculateNilai = (iduser:number) => {
+    if(!result) return 0;
+    const findIndexresultId = result?.findIndex(Obj => Obj.iduser == iduser);
+    if(findIndexresultId == -1) return 0;
 
-  //   const resultY = result[findIndexresultId];
+    const resultY = result[findIndexresultId];
 
-  //   const data = JSON.parse(resultY.answer) as (number|null)[][];
-  //   let poin = 0;
-  //   const sortData = data.sort((a,b) => {
-  //     if(a[0] && b[0]) {
-  //       return a[0] - b[0];
-  //     }
-  //   });
+    const data: ([number, number | string | null])[] = JSON.parse(resultY.answer);
 
-  //   sortData.forEach((v) => {
-      
-  //   })
-  // }
+    let poin = 0;
+    const sortData = data.sort((a,b) => a[0] - b[0])
+
+    sortData.forEach((v:[number, number | string | null], k) => {
+      if(!soal) return;
+      if(typeof soal[k].answer === 'string') {
+        const answer = JSON.parse(soal[k].answer) as (number|string)[];
+        const tipe = soal[k].tipe;
+        if(tipe === 'pilgan' && v[1]) {
+          if(answer.includes(v[1])) {
+            poin += Number(soal[k].score);
+          } else if(typeof v[1] === 'number') {
+            if(answer.includes(alpha[v[1]])) {
+              poin += Number(soal[k].score);
+            }
+          } else if(typeof v[1] === 'string') {
+            if(answer.includes(alpha[Number(v[1])])) {
+              poin += Number(soal[k].score);
+            }
+          }
+        }
+      }
+    })
+
+    return poin;
+  }
 
   useEffect(() => {
     fetch(pathGetCBTResultWithListId(Number(id)))
@@ -216,6 +236,50 @@ export default function LacakCbt() {
     })
   }
 
+  const reset = (id:number, name:string) => {
+    Swal.fire({
+      "title" : "Yakin Ingin Di reset Pekerjaannya ?",
+      "text": "NAMA LENGKAP : " + name,
+      showCancelButton: true,
+      cancelButtonText : "Tidak Jadi",
+      confirmButtonText : "Reset Ulang",
+      input : "text",
+      inputValidator : (value) => {
+        if(!value) return "Maaf Tidak bisa mereset ulang";
+
+        
+        if(flashUser?.jabatan !== 'operator') {
+          if(value !== "lab" + flashUser?.walikelas) return "Maaf Tidak bisa mereset Ulang"
+          
+          if(Number(ruangActive?.name.trim()) !== Number(flashUser?.walikelas)) return "Maaf Anda Tidak berhak mereset, silahkan reset sesuai ruang masing masing"
+        } else {
+          if(value !== "12345") return "Maaf Anda Tidak bisa mereset ulang"
+        }
+      }
+    }).then(e => {
+      if(!e.isConfirmed) return;
+      if(!result) return;
+      const idResult = result?.findIndex(Obj => Obj.iduser == id);
+      if(idResult === -1) return;
+      const resultId = result[idResult];
+      fetch(pathRemoveResultWithId(resultId.id), {
+        method : "DELETE",
+        headers : { "Content-Type": "application/json"},
+        body : JSON.stringify({})
+      }).then(r => r.json()).then(r => {
+        if(r.status !== 201) return;
+
+        return Swal.fire({
+          title : "Berhasil Di reset",
+          showConfirmButton : false,
+          timerProgressBar : true,
+          timer: 1000,
+          position : "top-right"
+        })
+      })
+    })
+  }
+
   return (
     <Suspense fallback="TUNGGU SEBENTAR">
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -258,8 +322,8 @@ export default function LacakCbt() {
                     <TableCell>{handleCheckStatus(v)} UJIAN</TableCell>
                     <TableCell>{v.photo ?? "NO"}</TableCell>
                     <TableCell>{v.kelas}</TableCell>
-                    <TableCell>40</TableCell>
-                    <TableCell className="text-right"><Button onClick={() => sendMessage("bebas@" + v.nisn)}>Bebaskan</Button></TableCell>
+                    <TableCell>{calculateNilai(v.id)}</TableCell>
+                    <TableCell className="text-right"><Button onClick={() => reset(v.id, v.name)}>RESET</Button></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -312,7 +376,7 @@ export default function LacakCbt() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectLabel>Sesi</SelectLabel>
+                          <SelectLabel>Ruang</SelectLabel>
                           {ruang.map((v, k) => (
                             <SelectItem key={k} value={v.name.trim()}>
                               Ruang {v.name}
@@ -325,8 +389,8 @@ export default function LacakCbt() {
                 </div>
 
                 <div className="mt-4">
-                  <Button onClick={handlePdfKehadiran} className="mx-3">Cetak Kehadiran</Button>
-                  <Button onClick={handlePdfBeritaAcara} className="mx-3">Cetak Berita Acara</Button>
+                  <Button onClick={handlePdfKehadiran} className="m-2">Cetak Kehadiran</Button>
+                  <Button onClick={handlePdfBeritaAcara} className="m-2">Cetak Berita Acara</Button>
                 </div>
               </CardContent>
             </Card>

@@ -299,7 +299,7 @@ export default function Cbt() {
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
         <Navbar />
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 lg:grid-cols-3 xl:grid-cols-3">
-          <div className="grid order-2 lg:order-1 Cgrid-cols-1 lg:grid-cols-2 items-start gap-4 md:gap-8 lg:col-span-2">
+          <div className="grid order-2 lg:order-1 grid-cols-1 lg:grid-cols-2 items-start gap-4 md:gap-8 lg:col-span-2">
             {html?.map((v, k) => (
               <Card key={k} className="w-full text-start">
                 <CardHeader>
@@ -338,7 +338,7 @@ export default function Cbt() {
           </div>
           <div className="order-1 lg:order-2 lg:sticky lg:top-7">
             <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
-              <CardHeader className="flex flex-row items-start bg-muted/50">
+              <CardHeader className="flex flex-col lg:flex-row items-start bg-muted/50">
                 <div className="grid gap-0.5">
                   <CardTitle className="group flex items-center gap-2 text-lg">
                     {detail?.name}

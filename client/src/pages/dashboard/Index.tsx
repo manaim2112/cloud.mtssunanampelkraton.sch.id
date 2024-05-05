@@ -168,7 +168,7 @@ export const TableMapel = (props: {
             {mapel.map((v, k) => (
               <TableRow
                 key={k}
-                onDoubleClick={() => handleLink(v.id)}
+                onClick={() => handleLink(v.id)}
                 className="bg-accent"
               >
                 <TableCell>
@@ -285,7 +285,7 @@ export const DetailActive = (props: { mapel: CbtInterface[] }) => {
       {
         mapel.length > 0 ? (
           <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
-            <CardHeader className="flex flex-row items-start bg-muted/50">
+            <CardHeader className="flex flex-col lg:flex-row items-start bg-muted/50">
               <div className="grid gap-0.5">
                 <CardTitle className="group flex items-center gap-2 text-lg">
                   {selection?.name}

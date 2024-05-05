@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/base64"
 	"fmt"
 	"strconv"
 	"time"
@@ -23,9 +22,9 @@ func getBeritaAcara(c *fiber.Ctx) error {
 	g := c.Params("mapel")
 	sesi := c.Params("sesi")
 	ruang := c.Params("ruang")
-	pengawas := c.Query("pengawas")
+	// pengawas := c.Query("pengawas")
 
-	decodePengawas, _ := base64.StdEncoding.DecodeString(pengawas)
+	// decodePengawas, _ := base64.StdEncoding.DecodeString(pengawas)
 
 	u := new(CBT_listType)
 	if err := db.QueryRowContext(c.Context(), "SELECT * FROM cbt_list WHERE id=?", g).Scan(&u.Id, &u.Name, &u.Jenis, &u.Durasi, &u.Min_durasi, &u.Mulai, &u.Berakhir, &u.Acak, &u.Code, &u.Priority, &u.Tokelas, &u.Creator, &u.Created_at, &u.Updated_at); err != nil {
@@ -188,7 +187,7 @@ func getBeritaAcara(c *fiber.Ctx) error {
 	pdf.Ln(30)
 	pdf.CellFormat(50.0, 10.0, "", "0", 0, "C", false, 0, "")
 	pdf.CellFormat(90.0, 10.0, "", "0", 0, "L", false, 0, "")
-	pdf.CellFormat(50.0, 10.0, string(decodePengawas), "B", 0, "L", false, 0, "")
+	pdf.CellFormat(50.0, 10.0, "", "B", 0, "L", false, 0, "")
 	// Mengirimkan PDF ke client sebagai tanggapan HTTP
 	c.Set("Content-Type", "application/pdf")
 	err1 := pdf.Output(c.Response().BodyWriter())
@@ -204,11 +203,11 @@ func getKehadiran(c *fiber.Ctx) error {
 	g := c.Params("mapel")
 	sesi := c.Params("sesi")
 	ruang := c.Params("ruang")
-	pengawas := c.Query("pengawas")
-	proktor := c.Query("proktor")
+	// pengawas := c.Query("pengawas")
+	// proktor := c.Query("proktor")
 
-	decodePengawas, _ := base64.StdEncoding.DecodeString(pengawas)
-	decodeProktor, _ := base64.StdEncoding.DecodeString(proktor)
+	// decodePengawas, _ := base64.StdEncoding.DecodeString(pengawas)
+	// decodeProktor, _ := base64.StdEncoding.DecodeString(proktor)
 
 	u := new(CBT_listType)
 	if err := db.QueryRowContext(c.Context(), "SELECT * FROM cbt_list WHERE id=?", g).Scan(&u.Id, &u.Name, &u.Jenis, &u.Durasi, &u.Min_durasi, &u.Mulai, &u.Berakhir, &u.Acak, &u.Code, &u.Priority, &u.Tokelas, &u.Creator, &u.Created_at, &u.Updated_at); err != nil {
@@ -330,9 +329,9 @@ func getKehadiran(c *fiber.Ctx) error {
 	pdf.CellFormat(50.0, 10.0, "Proktor", "0", 0, "C", false, 0, "")
 	pdf.Ln(30)
 
-	pdf.CellFormat(50.0, 10.0, string(decodePengawas), "B", 0, "C", false, 0, "")
+	pdf.CellFormat(50.0, 10.0, "", "B", 0, "C", false, 0, "")
 	pdf.CellFormat(90.0, 10.0, "", "0", 0, "L", false, 0, "")
-	pdf.CellFormat(50.0, 10.0, string(decodeProktor), "B", 0, "C", false, 0, "")
+	pdf.CellFormat(50.0, 10.0, "", "B", 0, "C", false, 0, "")
 	// Mengirimkan PDF ke client sebagai tanggapan HTTP
 	c.Set("Content-Type", "application/pdf")
 	err1 := pdf.Output(c.Response().BodyWriter())

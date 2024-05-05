@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { deleteAuthorizeAdmin } from "@/helper/deleteAuthorizeAdmin"
 import { getAuthorizeAdmin } from "@/helper/getAuthorizeAdmin"
 import { RefreshAdmin } from "@/lib/interface/RefreshAdmin"
-import { Home, LineChart, Package, Package2, PanelLeft, Search, ShoppingCart, Users2 } from "lucide-react"
+import { Home, Package2, PanelLeft, Search, Users2 } from "lucide-react"
 import { useState } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 
@@ -38,41 +38,18 @@ export default function Navbar() {
                   <span className="sr-only">Acme Inc</span>
                 </Link>
                 <Link
-                  to="#"
+                  to="/dashboard"
                   className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                 >
                   <Home className="h-5 w-5" />
-                  Dashboard
+                  Halaman Depan
                 </Link>
                 <Link
-                  to="#"
+                  to="/dashboard/users"
                   className="flex items-center gap-4 px-2.5 text-foreground"
                 >
-                  <ShoppingCart className="h-5 w-5" />
-                  Orders
-                </Link>
-                <Link
-                  to="#"
-                  className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                >
-                
-                  <Package className="h-5 w-5" />
-                  Products
-                </Link>
-                <Link
-                  to="#"
-                  className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                >
-                    
                   <Users2 className="h-5 w-5" />
-                  Customers
-                </Link>
-                <Link
-                  to="#"
-                  className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                >
-                  <LineChart className="h-5 w-5" />
-                  Settings
+                  Pengguna
                 </Link>
               </nav>
             </SheetContent>
