@@ -2,9 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
-	"path"
-	"strings"
 
 	"cloud.mtssunanampelkraton.sch.id/config"
 	"cloud.mtssunanampelkraton.sch.id/routes"
@@ -139,23 +136,23 @@ func main() {
 		routes.RouteSesi(app)
 		routes.RoutePdf(app)
 
-		app.Static("/", FSPATH)
+		// app.Static("/", FSPATH)
 
-		app.Use(func(c *fiber.Ctx) error {
-			// If the requested file exists then return it; otherwise return index.html (fileserver default page)
-			if c.Path() != "/" {
-				fullPath := FSPATH + strings.TrimPrefix(path.Clean(c.Path()), "/")
-				_, err := os.Stat(fullPath)
-				if err != nil {
-					if !os.IsNotExist(err) {
-						panic(err)
-					}
-					// Requested file does not exist, so we return the default (resolves to index.html)
-					c.Path("/")
-				}
-			}
-			return c.SendFile(FSPATH + "index.html")
-		})
+		// app.Use(func(c *fiber.Ctx) error {
+		// 	// If the requested file exists then return it; otherwise return index.html (fileserver default page)
+		// 	if c.Path() != "/" {
+		// 		fullPath := FSPATH + strings.TrimPrefix(path.Clean(c.Path()), "/")
+		// 		_, err := os.Stat(fullPath)
+		// 		if err != nil {
+		// 			if !os.IsNotExist(err) {
+		// 				panic(err)
+		// 			}
+		// 			// Requested file does not exist, so we return the default (resolves to index.html)
+		// 			c.Path("/")
+		// 		}
+		// 	}
+		// 	return c.SendFile(FSPATH + "index.html")
+		// })
 	}
 
 	app.Listen(":5002")
