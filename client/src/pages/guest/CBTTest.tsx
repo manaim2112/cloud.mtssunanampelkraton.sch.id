@@ -10,7 +10,7 @@ import { CbtInterface } from "@/lib/interface/CbtInterface";
 import { RefreshToken } from "@/lib/interface/RefreshToken";
 import { ResultInterface } from "@/lib/interface/ResultInterface";
 import { SoalInterface } from "@/lib/interface/SoalInterface";
-import { pathCheckingResultTime, pathFinishCBT, pathGetCBTListWithId, pathGetSoalWithIdList, WS_URL } from "@/service/path";
+import { pathCheckingResultTime, pathFinishCBT, pathGetCBTListWithId, pathGetSoalWithIdList } from "@/service/path";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -23,31 +23,32 @@ export const CBTTest = () => {
     const [cbt, setCbt] = useState<CbtInterface>();
     const [time, setTime] = useState<number>(0);
     const nav = useNavigate();
-    const [socket, setSocket] = useState<WebSocket>();
-    useEffect(() => {
-      const ws = new WebSocket(WS_URL(Number(id)));
-      setSocket(ws);
-      ws.onopen = () => {
-        console.log("Connected to WebSocket server");
-      };
+    // const [socket, setSocket] = useState<WebSocket>();
+    // useEffect(() => {
+    //   const ws = new WebSocket(WS_URL(Number(id)));
+    //   setSocket(ws);
+    //   ws.onopen = () => {
+    //     console.log("Connected to WebSocket server");
+    //   };
   
-      ws.onmessage = (event) => {
-        console.log("Received message:", event.data);
-      };
+    //   ws.onmessage = (event) => {
+    //     console.log("Received message:", event.data);
+    //   };
   
-      ws.onclose = () => {
-        console.log("Connection to WebSocket server closed");
-      };
+    //   ws.onclose = () => {
+    //     console.log("Connection to WebSocket server closed");
+    //   };
   
-      return () => {
-        ws.close();
-      };
-    }, [id]);
+    //   return () => {
+    //     ws.close();
+    //   };
+    // }, [id]);
     const sendMessage = (up:(number|null)[][]) => {
-      if (socket) {
-        const count = up.filter(e => e[1] !== null).length;
-        socket.send("guest-" + cbtid +"-" + user?.id + "-" + count);
-      }
+      console.log(up);
+      // if (socket) {
+      //   const count = up.filter(e => e[1] !== null).length;
+      //   // socket.send("guest-" + cbtid +"-" + user?.id + "-" + count);
+      // }
     };
     const takefinish = () => {
       const [soalOffline, polaOffline] = getSoalOffline(String(id), String(cbtid))

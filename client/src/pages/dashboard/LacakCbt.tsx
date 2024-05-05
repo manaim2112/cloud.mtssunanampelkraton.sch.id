@@ -1,7 +1,7 @@
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { Suspense, useEffect, useState } from "react";
-import { pathGetCBTListWithId, pathGetCBTResultWithListId, pathGetRuangAll, pathGetSesiAll, pathGetUsersAll, pathPrintKehadiran, WS_URL,
+import { pathGetCBTListWithId, pathGetCBTResultWithListId, pathGetRuangAll, pathGetSesiAll, pathGetUsersAll, pathPrintKehadiran
   // WS_URL,
 } from "@/service/path";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -27,7 +27,7 @@ export default function LacakCbt() {
   const [sesiActive, setSesiActive] = useState<SesiInterface>();
   const [ruangActive, setRuangActive] = useState<RuangInterface>();
   const [result, setResult] = useState<ResultInterface[]>();
-  const [socket, setSocket] = useState<WebSocket>();
+  // const [socket, setSocket] = useState<WebSocket>();
   const [flashUser] = useState<RefreshAdmin | null>(getAuthorizeAdmin());
   const [detail, setDetail] = useState<CbtInterface>();
 
@@ -38,29 +38,30 @@ export default function LacakCbt() {
     })
   }, [id])
   // Menghubungkan koneksi dengan yang lain
-  useEffect(() => {
-    const ws = new WebSocket(WS_URL(Number(id)));
-    setSocket(ws);
-    ws.onopen = () => {
-      console.log("Connected to WebSocket server");
-    };
-    ws.onclose = () => {
-      console.log("Connection to WebSocket server closed");
-    };
+  // useEffect(() => {
+  //   const ws = new WebSocket(WS_URL(Number(id)));
+  //   setSocket(ws);
+  //   ws.onopen = () => {
+  //     console.log("Connected to WebSocket server");
+  //   };
+  //   ws.onclose = () => {
+  //     console.log("Connection to WebSocket server closed");
+  //   };
 
-    ws.onmessage = (event : MessageEvent) => {
-      console.log(event)
-    }
-    return () => {
-      ws.close();
-    };
-  }, [id]);
+  //   ws.onmessage = (event : MessageEvent) => {
+  //     console.log(event)
+  //   }
+  //   return () => {
+  //     ws.close();
+  //   };
+  // }, [id]);
 
-  // mengrim pesan kepada guest
+  // // mengrim pesan kepada guest
   const sendMessage = (message: string) => {
-    if (socket && message !== "") {
-      socket.send("proktor-" + message);
-    }
+    console.log(message);
+    // if (socket && message !== "") {
+    //   socket.send("proktor-" + message);
+    // }
   };
 
   const handleCheckStatus = (user: UserInterface) => {
