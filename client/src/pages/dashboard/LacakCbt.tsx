@@ -138,8 +138,18 @@ export default function LacakCbt() {
 
     sortData.forEach((v:[number, number | string | null], k) => {
       if(!soal) return;
+      let str = soal[k].answer;
+
       if(typeof soal[k].answer === 'string') {
-        const answer = JSON.parse(soal[k].answer) as (number|string)[];
+        str = JSON.parse
+        if (typeof soal[k].answer === 'string') {
+            str = soal[k].answer;
+        } else {
+            // Handle array case, for example, by joining the array elements into a single string
+            str = soal[k].answer; // Join the array elements with a separator
+        }
+
+        const answer = JSON.parse(str);
         const tipe = soal[k].tipe;
         if(tipe === 'pilgan' && v[1]) {
           if(answer.includes(v[1])) {
