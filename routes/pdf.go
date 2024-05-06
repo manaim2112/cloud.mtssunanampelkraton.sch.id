@@ -111,8 +111,9 @@ func getBeritaAcara(c *fiber.Ctx) error {
 		})
 	}
 
-	strCountR := strconv.Itoa(countR)
-	countNotStr := strconv.Itoa(countR - count)
+	strCountR := strconv.Itoa(count)
+	countNotStr := strconv.Itoa(0)
+	// countNotStr := strconv.Itoa(countR - count)
 
 	// Membuat objek PDF baru
 	pdf := fpdf.New("P", "mm", "A4", "")
