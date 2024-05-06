@@ -111,8 +111,8 @@ func getBeritaAcara(c *fiber.Ctx) error {
 		})
 	}
 
-	strCountR := strconv.Itoa(count)
-	countNotStr := strconv.Itoa(0)
+	// strCountR := strconv.Itoa(count)
+	// countNotStr := strconv.Itoa(0)
 	// countNotStr := strconv.Itoa(countR - count)
 
 	// Membuat objek PDF baru
@@ -162,11 +162,11 @@ func getBeritaAcara(c *fiber.Ctx) error {
 	pdf.Ln(-1)
 	pdf.CellFormat(5.0, 10.0, "", "0", 0, "", false, 0, "")
 	pdf.CellFormat(60.0, 10.0, "Jumlah hadir (ikut ujian)", "0", 0, "", false, 0, "")
-	pdf.CellFormat(40.0, 10.0, ": "+strCountR+" orang", "0", 0, "", false, 0, "")
+	pdf.CellFormat(40.0, 10.0, ":     orang", "0", 0, "", false, 0, "")
 	pdf.Ln(-1)
 	pdf.CellFormat(5.0, 10.0, "", "0", 0, "", false, 0, "")
 	pdf.CellFormat(60.0, 10.0, "Jumlah tidak hadir", "0", 0, "", false, 0, "")
-	pdf.CellFormat(40.0, 10.0, ": "+countNotStr+" orang", "0", 0, "", false, 0, "")
+	pdf.CellFormat(40.0, 10.0, ":     orang", "0", 0, "", false, 0, "")
 	pdf.Ln(-1)
 	pdf.CellFormat(65.0, 10.0, "2. Catatan selama pelaksanaan ujian :", "0", 0, "", false, 0, "")
 	pdf.Ln(-1)

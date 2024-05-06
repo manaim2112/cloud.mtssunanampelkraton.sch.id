@@ -216,7 +216,7 @@ export const CBTTest = () => {
         <div className="bg-slate-100 p-3 fixed items-center flex gap-3 top-0 left-0 w-full">
           <div className="w-32">{cbt?.name}</div>
           <div className="w-full text-xl font-bold text-center">
-            <Countdown time={String(time)} />
+            <Countdown time={time} />
           </div>
           <div className="flex gap-2">
             <Avatar title={user?.name}>
@@ -274,22 +274,23 @@ export const CBTTest = () => {
     );
   };
   
-  export const Countdown = (props: { time: string; }) => {
-    const [totalSeconds, setTotalSeconds] = useState(parseInt(props.time));
+  export const Countdown = (props: { time: number; }) => {
+    const [totalSeconds, setTotalSeconds] = useState<number>(props.time);
     const [minute, setMinutes] = useState<number>(Math.floor(totalSeconds / (60*1000)))
     const [second, setSecond] = useState<number>(Math.floor(totalSeconds % 60));
-  
+    
     useEffect(() => {
-      setTotalSeconds(parseInt(props.time));
+      setTotalSeconds(props.time);
     }, [props.time]);
-  
+    
     useEffect(() => {
       if (!isNaN(totalSeconds) && totalSeconds > 0) {
         const interval = setInterval(() => {
           setTotalSeconds(prevTotalSeconds => prevTotalSeconds - 1);
           setSecond(totalSeconds % 60);
+          console.log("Menit", Math.floor(totalSeconds / (60*1000)), "Detik", second, minute)
           if(second < 1) {
-            setMinutes(prevMinutes => prevMinutes - 1);
+            // setMinutes(minute-1);
           }
 
         }, 1000);
