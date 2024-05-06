@@ -1,7 +1,7 @@
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { Suspense, useEffect, useState } from "react";
-import { pathGetCBTListWithId, pathGetCBTResultWithListId, pathGetRuangAll, pathGetSesiAll, pathGetSoalWithIdList, pathGetUsersAll, pathPrintKehadiran, pathRemoveResultWithId
+import { pathGetCBTListWithId, pathGetCBTResultWithListId, pathGetRuangAll, pathGetSesiAll, pathGetUsersAll, pathPrintKehadiran, pathRemoveResultWithId
   // WS_URL,
 } from "@/service/path";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,7 +17,7 @@ import { getAuthorizeAdmin } from "@/helper/getAuthorizeAdmin";
 import { CbtInterface } from "@/lib/interface/CbtInterface";
 import { Button } from "@/components/ui/button";
 import Swal from "sweetalert2";
-import { SoalInterface } from "@/lib/interface/SoalInterface";
+// import { SoalInterface } from "@/lib/interface/SoalInterface";
 // import { SoalInterface } from "@/lib/interface/SoalInterface";
 
 export default function LacakCbt() {
@@ -29,11 +29,11 @@ export default function LacakCbt() {
   const [sesiActive, setSesiActive] = useState<SesiInterface>();
   const [ruangActive, setRuangActive] = useState<RuangInterface>();
   const [result, setResult] = useState<ResultInterface[]>();
-  const [soal, setSoal] = useState<SoalInterface[]>();
+  // const [soal, setSoal] = useState<SoalInterface[]>();
   // const [socket, setSocket] = useState<WebSocket>();
   const [flashUser] = useState<RefreshAdmin | null>(getAuthorizeAdmin());
   const [detail, setDetail] = useState<CbtInterface>();
-  const [alpha] = useState<string[]>("abcdefghijklmnopqrstuvwxyz".split(""));
+  // const [alpha] = useState<string[]>("abcdefghijklmnopqrstuvwxyz".split(""));
 
   useEffect(() => {
     fetch(pathGetCBTListWithId(Number(id))).then(r => r.json()).then(res => {
@@ -42,12 +42,13 @@ export default function LacakCbt() {
     })
   }, [id])
 
-  useEffect(() => {
-    fetch(pathGetSoalWithIdList(Number(id))).then(r => r.json()).then(rs => {
-      if(rs.status !== 200) return;
-      setSoal(rs.data);
-    })
-  }, [id])
+  // useEffect(() => {
+  //   fetch(pathGetSoalWithIdList(Number(id))).then(r => r.json()).then(rs => {
+  //     if(rs.status !== 200) return;
+  //     setSoal(rs.data);
+  //   })
+  // }, [id])
+
   // Menghubungkan koneksi dengan yang lain
   // useEffect(() => {
   //   const ws = new WebSocket(WS_URL(Number(id)));
