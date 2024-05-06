@@ -1,3 +1,4 @@
+// export const BASE_URL = "http://localhost:5001/api"
 export const BASE_URL = "https://cbt.yami.my.id/api"
 export const WS_URL = (id:number) => "ws://cbt.yami.my.id/ws/cbt/" + id 
 

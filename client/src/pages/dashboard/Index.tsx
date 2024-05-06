@@ -49,6 +49,7 @@ export function ListCountContent() {
           "creator" : 1
         })
       }).then(r=>r.json()).then(response => {
+        console.log(response);
         if(response.status === 201) {
           nav("/dashboard", {replace : true})
         }

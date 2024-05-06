@@ -7,7 +7,7 @@ import {pathCheckingResult, pathGetCBTListAll, pathGetResultWithUserId, pathGetS
 import Swal from "sweetalert2";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { CbtInterface } from "@/lib/interface/CbtInterface";
 import { ResultInterface } from "@/lib/interface/ResultInterface";
 import { getAuthorizeGuest } from "@/helper/getAuthorizeGuest";
@@ -174,6 +174,10 @@ export default function IndexGuest() {
                 <Badge>SESI {user?.sesi}</Badge>{" "}
                 <Badge variant={"outline"}>RUANG {user?.ruang}</Badge>
               </div>
+            <div className="mt-8">
+              <Link className="bg-red-500 rounded-lg px-3 py-4" to="/">KELUAR</Link>
+
+            </div>
             </div>
 
             <Alert variant={"destructive"}>

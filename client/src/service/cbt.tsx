@@ -53,7 +53,7 @@ export function save(data:Array<HTML>, id:string) {
     
     const oi:Array<OAIData> = [];
     data.forEach(e => {
-        if(["pilgan", "isian_singkat", "isian_panjang", "menjodohkan"].includes(e.tipe) || Number(e.skor)) {
+        if(["Pilgan", "pilgan", "isian_singkat", "isian_panjang", "menjodohkan"].includes(e.tipe) || Number(e.skor)) {
             oi.push({
                 CBT_list_id : Number(id),
                 question : removeScriptag(e.soal),
@@ -71,6 +71,7 @@ export function save(data:Array<HTML>, id:string) {
                 headers : {"Content-Type": "application/json"},
                 body : JSON.stringify(oi)
             }).then(r=>r.json()).then(r => {
+                console.log(r)
                 resolve(r.status === 201)
             }).catch(err => {
                 resolve(err)

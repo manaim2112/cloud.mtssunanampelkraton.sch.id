@@ -210,6 +210,7 @@ export default function Cbt() {
       // event.preventDefault();
       const target = event.target as HTMLInputElement;
       const file = target?.files?.[0];
+      console.log(file)
       if (!file) return;
       inputElement.remove();
       const reader = new FileReader();
@@ -248,6 +249,7 @@ export default function Cbt() {
             element.shift();
             if (id) {
               setHtml([]);
+              console.log("TEST")
               save(element, id).then((r) => {
                 if (r) {
                   setHtml(element);
