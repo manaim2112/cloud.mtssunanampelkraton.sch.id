@@ -147,7 +147,7 @@ func getBeritaAcara(c *fiber.Ctx) error {
 	pdf.Ln(-1) // Pindah ke baris baru
 	pdf.CellFormat(5.0, 10.0, "", "0", 0, "", false, 0, "")
 	pdf.CellFormat(60.0, 10.0, "Alamat", "0", 0, "", false, 0, "")
-	pdf.MultiCell(100.0, 10.0, ": JL. Sepat No.70 bangil Pasuruan", "", "L", false)
+	pdf.MultiCell(100.0, 10.0, ": Jl. Karanganyar Kraton Pasuruan", "", "L", false)
 	pdf.Ln(-1)
 	pdf.CellFormat(5.0, 10.0, "", "0", 0, "", false, 0, "")
 	pdf.CellFormat(60.0, 10.0, "Ruang", "0", 0, "", false, 0, "")
@@ -253,7 +253,7 @@ func getKehadiran(c *fiber.Ctx) error {
 	pdf.CellFormat(190.0, 10, "(AM-BK)", "0", 0, "C", false, 0, "")
 	pdf.Ln(5)
 	pdf.SetFont("Arial", "B", 12)
-	pdf.CellFormat(190.0, 10, "Tahun Pelajaran 2024/2025", "0", 0, "C", false, 0, "")
+	pdf.CellFormat(190.0, 10, "Tahun Pelajaran 2023/2024", "0", 0, "C", false, 0, "")
 	pdf.Ln(5)
 
 	// Menambahkan header
