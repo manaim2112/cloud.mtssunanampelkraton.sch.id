@@ -129,43 +129,43 @@ export default function LacakCbt() {
     const findIndexresultId = result?.findIndex(Obj => Obj.iduser == iduser);
     if(findIndexresultId == -1) return 0;
 
-    const resultY = result[findIndexresultId];
+    // const resultY = result[findIndexresultId];
 
-    const data: ([number, number | string | null])[] = JSON.parse(resultY.answer);
+    // const data: ([number, number | string | null])[] = JSON.parse(resultY.answer);
 
-    let poin = 0;
-    const sortData = data.sort((a,b) => a[0] - b[0])
+    const poin = 0;
+    // const sortData = data.sort((a,b) => a[0] - b[0])
 
-    sortData.forEach((v:[number, number | string | null], k) => {
-      if(!soal) return;
-      let str = soal[k].answer;
+    // sortData.forEach((v:[number, number | string | null], k) => {
+    //   if(!soal) return;
+    //   let str = soal[k].answer;
 
-      if(typeof soal[k].answer === 'string') {
-        str = JSON.parse
-        if (typeof soal[k].answer === 'string') {
-            str = soal[k].answer;
-        } else {
-            // Handle array case, for example, by joining the array elements into a single string
-            str = soal[k].answer; // Join the array elements with a separator
-        }
+    //   if(typeof soal[k].answer === 'string') {
+    //     str = JSON.parse
+    //     if (typeof soal[k].answer === 'string') {
+    //         str = soal[k].answer;
+    //     } else {
+    //         // Handle array case, for example, by joining the array elements into a single string
+    //         str = soal[k].answer; // Join the array elements with a separator
+    //     }
 
-        const answer = JSON.parse(str);
-        const tipe = soal[k].tipe;
-        if(tipe === 'pilgan' && v[1]) {
-          if(answer.includes(v[1])) {
-            poin += Number(soal[k].score);
-          } else if(typeof v[1] === 'number') {
-            if(answer.includes(alpha[v[1]])) {
-              poin += Number(soal[k].score);
-            }
-          } else if(typeof v[1] === 'string') {
-            if(answer.includes(alpha[Number(v[1])])) {
-              poin += Number(soal[k].score);
-            }
-          }
-        }
-      }
-    })
+    //     const answer = JSON.parse(str);
+    //     const tipe = soal[k].tipe;
+    //     if(tipe === 'pilgan' && v[1]) {
+    //       if(answer.includes(v[1])) {
+    //         poin += Number(soal[k].score);
+    //       } else if(typeof v[1] === 'number') {
+    //         if(answer.includes(alpha[v[1]])) {
+    //           poin += Number(soal[k].score);
+    //         }
+    //       } else if(typeof v[1] === 'string') {
+    //         if(answer.includes(alpha[Number(v[1])])) {
+    //           poin += Number(soal[k].score);
+    //         }
+    //       }
+    //     }
+    //   }
+    // })
 
     return poin;
   }
