@@ -276,6 +276,8 @@ export const CBTTest = () => {
   
   export const Countdown = (props: { time: string; }) => {
     const [totalSeconds, setTotalSeconds] = useState(parseInt(props.time));
+    const [minute, setMinutes] = useState<number>(Math.floor(totalSeconds / (60*1000)))
+    const [second, setSecond] = useState<number>(Math.floor(totalSeconds % 60));
   
     useEffect(() => {
       setTotalSeconds(parseInt(props.time));
@@ -285,18 +287,20 @@ export const CBTTest = () => {
       if (!isNaN(totalSeconds) && totalSeconds > 0) {
         const interval = setInterval(() => {
           setTotalSeconds(prevTotalSeconds => prevTotalSeconds - 1);
+          setSecond(totalSeconds % 60);
+          if(second < 1) {
+            setMinutes(prevMinutes => prevMinutes - 1);
+          }
+
         }, 1000);
   
         return () => clearInterval(interval);
       }
     }, [totalSeconds]);
-  
-    const minutes = Math.floor(totalSeconds / (60*1000));
-    const seconds = totalSeconds % 60;
-  
+    
     return (
       <Suspense>
-        {minutes} : {seconds < 10 ? `0${seconds}` : seconds}
+        {minute} : {second < 10 ? `0${second}` : second}
       </Suspense>
     );
   };
