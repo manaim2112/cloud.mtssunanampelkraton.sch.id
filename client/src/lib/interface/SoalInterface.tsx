@@ -4,8 +4,8 @@ export interface SoalInterface {
     num: number | null;
     question: string;
     tipe: string;
-    options: Array<string>|string;
-    answer: Array<string>|string;
+    options: any;
+    answer: any;
     score: number;
     created_at: string;
   }

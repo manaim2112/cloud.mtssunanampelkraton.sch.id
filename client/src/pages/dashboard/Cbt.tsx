@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import React, {startTransition, Suspense, useEffect, useState } from "react";
-import { pathChangePriorityCBTList, pathGetCBTListWithId, pathGetSoalWithIdList, pathUpdateCBTList } from "@/service/path";
+import { pathChangeCodeCBTList, pathChangePriorityCBTList, pathGetCBTListWithId, pathGetSoalWithIdList, pathUpdateCBTList } from "@/service/path";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy, Plus, Truck, UploadCloud } from "lucide-react";
@@ -17,6 +17,7 @@ import { HTML, save } from "@/service/cbt";
 import { Switch } from "@/components/ui/switch";
 import Swal from "sweetalert2";
 import { CbtInterface } from "@/lib/interface/CbtInterface";
+import { randomText } from "@/helper/randomText";
 
 const UpdateSetting = (props: { detail: CbtInterface | undefined }) => {
   const { detail } = props;
@@ -294,6 +295,25 @@ export default function Cbt() {
       });
   };
 
+  const changeCode = async () => {
+    const t = randomText(3);
+    console.log(id, t)
+    const u = await fetch(pathChangeCodeCBTList, {
+      method : "put",
+      headers : { "Content-Type": "application/json"},
+      body : JSON.stringify({id : parseInt(t), code : t})
+    });
+
+    const upda = await u.json();
+
+    if(upda.status !== 201) return console.log(upda);
+
+    const y = detail;
+    y.code = t;
+    setDetail(y);
+
+  }
+
   return (
     <Suspense fallback={"Tunggu Sebentar"}>
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -321,14 +341,14 @@ export default function Cbt() {
                       {v.jawaban.map((vj, vk) => (
                         <Badge
                           key={vk}
-                          className="mx-2"
+                          className="mx-2 w-full"
                           variant={
                             v.kunci.includes(alphabet[vk]) || v.kunci.includes(vk)
                               ? "default"
                               : "outline"
                           }
                           dangerouslySetInnerHTML={{
-                            __html: alphabet[vk] + " " + vj,
+                            __html: alphabet[vk] + ".  " + vj,
                           }}
                         ></Badge>
                       ))}
@@ -447,7 +467,7 @@ export default function Cbt() {
                     </li>
                     <li className="flex items-center justify-between font-semibold">
                       <span className="text-muted-foreground">KODE UJIAN</span>
-                      <span className="text-3xl">{detail?.code}</span>
+                      <span className="text-5xl" onClick={() => changeCode()}>{detail?.code}</span>
                     </li>
                   </ul>
                 </div>

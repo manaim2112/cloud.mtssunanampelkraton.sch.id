@@ -182,7 +182,7 @@ export const Users = () => {
           </div>
           <div>
             <Card className="overflow-hidden" x-chunk="dashboard-05-chunk-4">
-              <CardHeader className="flex flex-row items-start bg-muted/50">
+              <CardHeader className="flex flex-col lg:flex-row items-start bg-muted/50">
                 <div className="grid gap-0.5">
                   <CardTitle className="group flex items-center gap-2 text-4xl">
                     {kelasActive}
@@ -227,16 +227,16 @@ export const Users = () => {
                 <div className="grid gap-3">
                   <div className="font-semibold">USER DETAIL</div>
                   <ul className="grid gap-3">
-                    <li className="flex items-center justify-between">
-                      <span className="text-muted-foreground">
-                        KELAS <span>2</span>
+                    <li className="">
+                      <span className="text-muted-foreground me-3">
+                        KELAS
                       </span>
                       <span>
                         {kelas.map((v, k) => (
                           <Badge
                             variant={"outline"}
                             key={k}
-                            className="space-x-2"
+                            className="space-x-2 m-1"
                           >
                             {v.name}
                           </Badge>
@@ -256,14 +256,14 @@ export const Users = () => {
                         </div>
                       </span>
                     </li>
-                    <li className="flex items-center justify-between">
+                    <li className="">
                       <span className="text-muted-foreground">RUANG</span>
                       <span>
                         {ruang.map((v, k) => (
                           <Badge
                             variant={"outline"}
                             key={k}
-                            className="space-x-2 mx-2"
+                            className="space-x-2 m-1"
                           >
                             RUANG {v.name}
                           </Badge>
@@ -283,14 +283,14 @@ export const Users = () => {
                         </div>
                       </span>
                     </li>
-                    <li className="flex items-center justify-between">
-                      <span className="text-muted-foreground">SESI</span>
+                    <li className="">
+                      <span className="text-muted-foreground me-3">SESI</span>
                       <span>
                         {sesi.map((v, k) => (
                           <Badge
                             variant={"outline"}
                             key={k}
-                            className="space-x-2"
+                            className="space-x-2 m-1"
                           >
                             SESI {v.name}
                           </Badge>

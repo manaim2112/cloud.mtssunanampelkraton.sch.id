@@ -5,7 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import {pathCheckingResult, pathGetCBTListAll, pathGetResultWithUserId, pathGetSoalWithIdList, pathStartCBT } from "@/service/path";
 import Swal from "sweetalert2";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link, useNavigate } from "react-router-dom";
 import { CbtInterface } from "@/lib/interface/CbtInterface";
@@ -20,10 +20,11 @@ import { RefreshToken } from "@/lib/interface/RefreshToken";
 
 export const ListMapelNow = (prop: {
   mapel: CbtInterface[];
+  result : ResultInterface[];
   user: string;
   userid: number;
 }) => {
-  const { mapel, user, userid } = prop;
+  const { mapel, user, userid, result } = prop;
   const nav = useNavigate();
   const handle = async (id: number) => {
     const i = mapel.findIndex((Obj) => Obj.id === id);
@@ -107,17 +108,17 @@ export const ListMapelNow = (prop: {
 
   return (
     <>
-      <div className="text-3xl font-bold">UJIAN HARI INI</div>
+      <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500 animate-bounce">UJIAN HARI INI</div>
       <div>
         {mapel
-          .filter((Obj) => Obj.priority == true)
+          .filter((Obj) => Obj.priority == true).filter(Obj => result.findIndex(v => v.idlist == Obj.id) ==  -1)
           .map((v, k) => (
-            <Card onClick={async () => await handle(v.id)} key={k}>
+            <Card className="my-2 shadow hover:shadow-lg transition-all" onClick={async () => await handle(v.id)} key={k}>
               <CardHeader>
                 <CardTitle>{v.name}</CardTitle>
                 <CardDescription>{v.jenis}</CardDescription>
               </CardHeader>
-              <CardContent>Dimulai {v.mulai}</CardContent>
+              {/* <CardContent>Dimulai {v.mulai}</CardContent> */}
             </Card>
           ))}
       </div>
@@ -139,6 +140,7 @@ export default function IndexGuest() {
   });
   const [mapel, setMapel] = useState<CbtInterface[]>([]);
   const [result, setResult] = useState<Array<ResultInterface>>([]);
+  const nav = useNavigate();
 
   useEffect(() => {
     const auth = getAuthorizeGuest();
@@ -161,6 +163,12 @@ export default function IndexGuest() {
     return setUser(auth);
   }, []);
 
+  const handleNext = (v:CbtInterface) => {
+   if(result.find((Obj) => Obj.idlist == v.id && Obj.process == "START")) {
+    nav("/guest/" + user.nisn + '/cbt/' + v.id, {replace : true})
+   }
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <Sidebar />
@@ -175,7 +183,7 @@ export default function IndexGuest() {
                 <Badge variant={"outline"}>RUANG {user?.ruang}</Badge>
               </div>
             <div className="mt-8">
-              <Link className="bg-red-500 rounded-lg px-3 py-4" to="/">KELUAR</Link>
+              <Link className="bg-red-500 font-bold text-white rounded-xl px-3 py-4" to="/">KELUAR</Link>
 
             </div>
             </div>
@@ -208,7 +216,7 @@ export default function IndexGuest() {
                 </ul>
               </AlertDescription>
             </Alert>
-            <ListMapelNow mapel={mapel} user={user?.nisn} userid={user?.id} />
+            <ListMapelNow mapel={mapel} result={result} user={user?.nisn} userid={user?.id} />
           </div>
           <div className="bg-white shadow rounded-lg p-3">
             <div className="text-lg uppercase text-center font-bold">
@@ -226,6 +234,7 @@ export default function IndexGuest() {
               <TableBody>
                 {mapel.map((v, k) => (
                   <TableRow
+                    onClick={() => handleNext(v)}
                     className={
                       result.find((Obj) => Obj.idlist == v.id && Obj.process == "START")
                         ? "bg-blue-300 animate-pulse"
