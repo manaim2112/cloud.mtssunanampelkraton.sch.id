@@ -5,6 +5,7 @@ import (
 	"cloud.mtssunanampelkraton.sch.id/routes"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -62,6 +63,12 @@ func main() {
 	godotenv.Load(".env")
 
 	db, err := config.Connection()
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "*",
+		AllowCredentials: true,
+	}))
+
 	// buildDir := "./public"
 	// // app.Use(func (c *fiber.Ctx)  {
 	// // 	trypath := path.Join(buildDir, c.Requ)

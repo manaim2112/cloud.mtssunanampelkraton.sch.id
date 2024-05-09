@@ -17,6 +17,7 @@ import Cbt from './pages/dashboard/Cbt.tsx'
 import LacakCbt from './pages/dashboard/LacakCbt.tsx'
 import Login from './pages/Login.tsx'
 import { Analisis } from './pages/guest/Analisis.tsx'
+import AnalisisAdmin from './pages/dashboard/Analisis.tsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -30,6 +31,7 @@ const router = createBrowserRouter(
       <Route path='dashboard/cbt/id/:id' element={<Cbt/>}/>
       <Route path='dashboard/cbt/id/:id/lacak' element={<LacakCbt/>}/>
       <Route path='dashboard/users' element={<Users/>}/>
+      <Route path='dashboard/analisis' element={<AnalisisAdmin/>}/>
 
 
       <Route path="guest/:id" element={<IndexGuest/>}/>
