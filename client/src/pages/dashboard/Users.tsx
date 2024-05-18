@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { pathCreateRuang, pathCreateSesi, pathGetKelasAll, pathGetRuangAll, pathGetSesiAll, pathGetUsersAll, pathInsertKelas} from "@/service/path";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue} from "@/components/ui/select";
@@ -13,7 +13,7 @@ import { KelasInterface } from "@/lib/interface/KelasInterface";
 import { SesiInterface } from "@/lib/interface/SesiInterface";
 import { RuangInterface } from "@/lib/interface/RuangInterface";
 
-export const Users = () => {
+export default function Users() {
   const [kelas, setKelas] = useState<Array<KelasInterface>>([]);
   const [ruang, setRuang] = useState<Array<RuangInterface>>([]);
   const [sesi, setSesi] = useState<Array<SesiInterface>>([]);
@@ -143,6 +143,8 @@ export const Users = () => {
     }
   };
   return (
+    <Suspense fallback={"Tunggu Sebentar"}>
+
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <Sidebar />
       <div className="flex flex-col sm:gap-4 md:pl-14">
@@ -318,5 +320,6 @@ export const Users = () => {
         </main>
       </div>
     </div>
+    </Suspense>
   );
-};
+}

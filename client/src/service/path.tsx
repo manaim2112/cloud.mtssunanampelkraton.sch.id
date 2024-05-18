@@ -1,5 +1,6 @@
+export const BASE_URL = "https://cbt.yami.my.id/api"
 // export const BASE_URL = "http://localhost:5001/api"
-export const BASE_URL = "https://cloud.mtssunanampelkraton.sch.id/api"
+// export const BASE_URL = "https://cloud.mtssunanampelkraton.sch.id/api"
 export const WS_URL = (id:number) => "ws://cbt.yami.my.id/ws/cbt/" + id 
 
 export const pathInstallTable = (t:string) => BASE_URL + "/install/table_"+ t;

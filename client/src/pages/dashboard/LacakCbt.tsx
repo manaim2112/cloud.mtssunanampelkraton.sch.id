@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ResultInterface } from "@/lib/interface/ResultInterface";
 import { UserInterface } from "@/lib/interface/UserInterface";
 import { SesiInterface } from "@/lib/interface/SesiInterface";
@@ -59,6 +59,7 @@ export default function LacakCbt() {
   const [flashUser] = useState<RefreshAdmin | null>(getAuthorizeAdmin());
   const [detail, setDetail] = useState<CbtInterface>();
   const [alpha] = useState<string[]>("ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""));
+  const nav = useNavigate();
 
   useEffect(() => {
     fetch(pathGetCBTListWithId(Number(id)))
@@ -327,6 +328,10 @@ export default function LacakCbt() {
     });
   };
 
+  const resultUser = (iduser: number) => {
+    nav("/dashboard/cbt/id/" + id  + "/lacak/" + iduser);
+  }
+
   return (
     <Suspense fallback="TUNGGU SEBENTAR">
       <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -349,7 +354,7 @@ export default function LacakCbt() {
                     <TableHead>Target</TableHead>
                     <TableHead>Kelas</TableHead>
                     <TableHead>Nilai Sementara</TableHead>
-                    <TableHead className="text-right">PELANGGARAN</TableHead>
+                    <TableHead className="text-right">AKSI</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -373,6 +378,9 @@ export default function LacakCbt() {
                       <TableCell className="text-right">
                         <Button onClick={() => reset(v.id, v.name)}>
                           RESET
+                        </Button>
+                        <Button onClick={() => resultUser(v.id)}>
+                          Lihat HASIL
                         </Button>
                       </TableCell>
                     </TableRow>

@@ -146,7 +146,7 @@ func main() {
 		routes.RouteSesi(app)
 		routes.RoutePdf(app)
 
-		// app.Static("/", FSPATH)
+		app.Static("/public", FSPATH)
 
 		// app.Use(func(c *fiber.Ctx) error {
 		// 	// If the requested file exists then return it; otherwise return index.html (fileserver default page)

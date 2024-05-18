@@ -246,11 +246,13 @@ export default function Cbt() {
                 skor: Number(td[5].innerText),
               };
               element.push(item);
+
             });
             element.shift();
             if (id) {
               setHtml([]);
-              console.log("TEST")
+              console.log("TEST", element)
+
               save(element, id).then((r) => {
                 if (r) {
                   setHtml(element);

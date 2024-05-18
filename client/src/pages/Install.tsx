@@ -18,7 +18,7 @@ const option = {
     headers : {"Content-Type" : "application/json"},
     body : JSON.stringify({})
 }
-export function Install() {
+export default function Install() {
   const [command, setCommand] = useState<string[]>([])
     const [loading, setLoading] = useState<boolean>(false)
   const handlerButton = async () => {

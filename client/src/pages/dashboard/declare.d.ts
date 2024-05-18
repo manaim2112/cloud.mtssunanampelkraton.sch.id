@@ -10,4 +10,3 @@ declare const mammothPlus: {
 };
 
 declare const MathJax: any;
-
